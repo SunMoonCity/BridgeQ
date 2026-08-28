@@ -12,6 +12,7 @@ import './build-controller.test.js';
 import './validator.test.js';
 import './physics-conversion.test.js';
 import './gravity-simulation.test.js';
+import './road-surface.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
