@@ -11,6 +11,7 @@ import './piece-manager.test.js';
 import './build-controller.test.js';
 import './validator.test.js';
 import './physics-conversion.test.js';
+import './gravity-simulation.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
