@@ -1,0 +1,43 @@
+/* base.css - Global resets, typography, and layout */
+:root {
+  --bg-color: #f0f4f8;
+  --grid-line-color: rgba(200, 215, 230, 0.6);
+  --grid-major-color: rgba(160, 185, 210, 0.9);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --accent-primary: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-danger: #dc2626;
+  --accent-success: #16a34a;
+  --accent-warning: #ea580c;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --card-border: #cbd5e1;
+  --ground-color: #78350f;
+  --grass-color: #22c55e;
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Technothlon — Bridge Building Competition</title>
+  
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/game.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top HUD matching Wireframe -->
+    <header class="hud-container">
+      <div class="hud-left">
+        <div id="statRound" class="hud-pill">Round 1</div>
+      </div>
+      <div class="hud-center">
+        <span class="hud-timer-label" style="font-weight: 700; color: #64748b; font-size: 0.9rem;">Time Remaining:</span>
+        <div id="statTime" class="hud-timer">05:00</div>
+      </div>
+      <div class="hud-right">
+        <div class="hud-budget">
+          <div>Total Budget: <span class="budget-val" id="statTotalBudget">₹ 50,00,000</span></div>
+          <div>Budget Used: <span class="budget-val" id="statSpent" style="color: #dc2626;">₹ 0</span></div>
+          <div>Budget Remaining: <span class="budget-val" id="statRemaining" style="color: #16a34a;">₹ 50,00,000</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Game Viewport (Canvas + HTML Overlays) -->
+    <main class="viewport-wrapper">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Left Construction Overlay (Appears on click / start) -->
+      <div id="leftConstructionZone" class="left-construction-zone">
+        <div id="constructionCard" class="left-construction-card">
+          <!-- Orientation Switcher -->
+          <div class="orientation-toggle">
+            <button id="btnOrientY" class="orientation-btn active" data-orientation="y-of-x">y = f(x)</button>
+            <button id="btnOrientX" class="orientation-btn" data-orientation="x-of-y">x = f(y)</button>
+          </div>
+
+          <!-- Equation Input -->
+          <div>
+            <label for="eqInput" style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Equation:</label>
+            <input type="text" id="eqInput" class="input-field" placeholder="e.g. 0.005*(x-200)^2 + 550" />
+          </div>
+
+          <!-- Domain Bounds -->
+          <div style="display: flex; gap: 8px;">
+            <div style="flex: 1;">
+              <label for="rangeMin" style="font-size: 0.75rem; font-weight: 600; color: #64748b; display: block; margin-bottom: 2px;">Min Bound:</label>
+              <input type="number" id="rangeMin" class="input-field" placeholder="0" value="0" step="1" />
+            </div>
+            <div style="flex: 1;">
+              <label for="rangeMax" style="font-size: 0.75rem; font-weight: 600; color: #64748b; display: block; margin-bottom: 2px;">Max Bound:</label>
+              <input type="number" id="rangeMax" class="input-field" placeholder="400" value="400" step="1" />
+            </div>
+          </div>
+
+          <!-- Material Selection -->
+          <div>
+            <label style="font-size: 0.75rem; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Material:</label>
+            <div id="materialPicker" class="material-selector">
+              <div class="material-option selected" data-material="steel">Steel (₹15)</div>
+              <div class="material-option" data-material="wood">Wood (₹6)</div>
+              <div class="material-option" data-material="concrete">Concrete (₹10)</div>
+              <div class="material-option" data-material="road">Road Deck (₹20)</div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button id="btnPlot" class="btn btn-primary" style="flex: 2;">Plot Piece</button>
+            <button id="btnDeleteSelected" class="btn btn-danger" style="flex: 1; display: none;">Delete</button>
+          </div>
+          <button id="btnTestBridge" class="btn btn-success" style="width: 100%;">Test Bridge</button>
+        </div>
+      </div>
+
+      <!-- Right Character Overlay: Brij Bhushan -->
+      <div class="character-overlay">
+        <div id="characterDialogue" class="character-dialogue">
+          Loading competition environment...
+        </div>
+        <div id="characterAvatar" class="character-avatar">😐</div>
+      </div>
+
+      <!-- Toast Notification Box -->
+      <div id="toastNotification" class="notification-toast"></div>
+    </main>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

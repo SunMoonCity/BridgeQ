@@ -1,0 +1,13 @@
+{
+  "name": "technothlon-bridge-game",
+  "version": "1.0.0",
+  "description": "Technothlon Bridge-Building Competition Game",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/test-runner.js",
+    "serve": "node server.js"
+  },
+  "keywords": ["bridge", "physics", "game", "technothlon"],
+  "author": "",
+  "license": "MIT"
+}
