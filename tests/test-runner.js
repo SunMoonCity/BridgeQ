@@ -14,6 +14,7 @@ import './physics-conversion.test.js';
 import './gravity-simulation.test.js';
 import './road-surface.test.js';
 import './vehicle.test.js';
+import './load-test-runner.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
