@@ -212,6 +212,9 @@ export class LogicalGraph {
     }
 
     const pieceId = id !== null ? id : ++this.pieceIdCounter;
+    if (id !== null && id >= this.pieceIdCounter) {
+      this.pieceIdCounter = id;
+    }
     if (this.pieces.has(pieceId)) {
       return { success: false, error: `Piece ID ${pieceId} already exists in graph.` };
     }

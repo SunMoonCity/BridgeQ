@@ -9,6 +9,7 @@ import './graph-model.test.js';
 import './viewport.test.js';
 import './piece-manager.test.js';
 import './build-controller.test.js';
+import './validator.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');

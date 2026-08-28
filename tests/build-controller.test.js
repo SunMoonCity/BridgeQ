@@ -249,7 +249,7 @@ function makeBuildController(overrides = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Test 7: Test Bridge Without Any Pieces — Warning
+// Test 7: Test Bridge Without Any Pieces — Error
 // ---------------------------------------------------------------------------
 {
   const { ctrl, graph } = makeBuildController();
@@ -258,8 +258,8 @@ function makeBuildController(overrides = {}) {
   ctrl.handleTestBridge();
 
   assert.ok(
-    ctrl._notifications.log.some(n => n.type === 'warning'),
-    'Warning when testing empty bridge'
+    ctrl._notifications.log.some(n => n.type === 'error'),
+    'Error when testing empty bridge'
   );
 }
 

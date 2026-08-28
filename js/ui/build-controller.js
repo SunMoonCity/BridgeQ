@@ -10,8 +10,10 @@
 //   7. Emit EVENTS.NOTIFICATION for any module to respond.
 
 import { PieceManager } from '../builder/piece-manager.js';
+import { BridgeValidator } from '../builder/validator.js';
 import { eventBus } from '../core/event-bus.js';
-import { EVENTS } from '../config/constants.js';
+import { gameState } from '../core/game-state.js';
+import { EVENTS, GAME_STATES } from '../config/constants.js';
 
 /** Euclidean distance between two points */
 function dist2(ax, ay, bx, by) {
@@ -269,34 +271,39 @@ export class BuildController {
   // ---------------------------------------------------------------------------
 
   handleTestBridge() {
-    // Verify at least one piece exists
-    if (this.graph.pieceCount === 0) {
-      this.notify('Build at least one bridge piece before testing!', 'warning');
-      if (this.character) {
-        this.character.setEmotion('😐');
-        this.character.say('You need to build a bridge first!');
-      }
-      return;
-    }
+    const validation = BridgeValidator.validate(this.graph, this.budgetManager, this.roundConfig);
 
-    // Verify structural connectivity (both cliff anchors reachable from bridge pieces)
-    const components = this.graph.getConnectedComponents();
-    const allConnected = components.every(c => c.hasFixedSupport);
-    if (!allConnected || components.length > 1) {
-      this.notify('Bridge is not fully connected to both cliff anchors!', 'error');
+    if (!validation.valid) {
+      const primaryError = validation.errors[0];
+      this.notify(primaryError, 'error');
+
       if (this.character) {
         this.character.setEmotion('😰');
-        this.character.say('The bridge pieces must form a continuous structure connecting both cliffs!');
+        this.character.say(primaryError);
       }
-      return;
+      return { success: false, errors: validation.errors };
     }
 
-    // Emit test started event — Phase 8 / 9 picks this up
-    this.notify('Bridge finalized! Starting load test...', 'success');
+    // Transition state from BUILDING -> FINALIZING -> TESTING
+    if (gameState.canTransitionTo(GAME_STATES.FINALIZING)) {
+      gameState.transitionTo(GAME_STATES.FINALIZING);
+    }
+    if (gameState.canTransitionTo(GAME_STATES.TESTING)) {
+      gameState.transitionTo(GAME_STATES.TESTING);
+    }
+
+    this.notify('Bridge validated and finalized! Initiating load test...', 'success');
+
     if (this.character) {
       this.character.setEmotion('😄');
-      this.character.say('Structure looks connected! Initiating the load test. Hold tight!');
+      this.character.say('Structure and road network verified! Initiating the load test. Hold tight!');
     }
-    eventBus.emit(EVENTS.TEST_STARTED, { graph: this.graph });
+
+    eventBus.emit(EVENTS.TEST_STARTED, {
+      graph: this.graph,
+      summary: validation.summary
+    });
+
+    return { success: true, summary: validation.summary };
   }
 }
