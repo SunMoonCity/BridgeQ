@@ -3,15 +3,18 @@
 import { gameState } from './core/game-state.js';
 import { hud } from './ui/hud.js';
 import { character } from './ui/character.js';
+import { toast } from './ui/toast.js';
 import { budgetManager } from './economy/budget.js';
 import { getRoundConfig } from './config/round-config.js';
 import { GAME_STATES, EVENTS } from './config/constants.js';
 import { eventBus } from './core/event-bus.js';
 import { LogicalGraph } from './builder/graph-model.js';
 import { BridgeRenderer } from './ui/renderer.js';
+import { BuildController } from './ui/build-controller.js';
 
 let renderer = null;
 let graph = null;
+let buildController = null;
 
 function initApp() {
   console.log('[Technothlon Bridge Game] Initializing Application...');
@@ -24,6 +27,7 @@ function initApp() {
   // Initialize UI systems
   hud.init();
   character.init();
+  toast.init();
 
   // Load Round 1 config
   const round1 = getRoundConfig(1);
@@ -33,6 +37,16 @@ function initApp() {
     budgetManager.init(round1.budget);
     gameState.setRound(1, round1);
   }
+
+  // Build Controller (Phase 7) — wires all construction card inputs
+  buildController = new BuildController({
+    graph,
+    budgetManager,
+    renderer,
+    roundConfig: round1,
+    character
+  });
+  buildController.init();
 
   // Handle window resizing
   function resizeCanvas() {
@@ -53,15 +67,13 @@ function initApp() {
   }
   requestAnimationFrame(renderLoop);
 
-  // Setup construction panel reveal on click/interaction (wireframe requirement)
+  // Construction panel reveal on canvas click (wireframe requirement)
   const leftZone = document.getElementById('leftConstructionZone');
   const constructionCard = document.getElementById('constructionCard');
 
   if (canvas) {
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      if (x < 350 && !constructionCard.classList.contains('active')) {
+    canvas.addEventListener('click', () => {
+      if (!constructionCard.classList.contains('active')) {
         startBuildingPhase();
       }
     });
@@ -100,7 +112,7 @@ function initApp() {
     }
   }
 
-  console.log('[Technothlon Bridge Game] Initialization complete.');
+  console.log('[Technothlon Bridge Game] Initialization complete. Build Phase 7 UI active.');
 }
 
 window.addEventListener('DOMContentLoaded', initApp);

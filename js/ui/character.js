@@ -36,6 +36,11 @@ class CharacterSystem {
       this.say('Nice curve! Make sure all pieces connect firmly to the cliffs.');
     });
 
+    eventBus.on(EVENTS.PIECE_DELETED, () => {
+      this.setEmotion(EMOTIONS.THINKING);
+      this.say('Piece removed. Sometimes a fresh approach is the best approach!');
+    });
+
     eventBus.on(EVENTS.STAGE_COMPLETED, ({ stage }) => {
       this.setEmotion(stage >= 4 ? EMOTIONS.TRIUMPHANT : EMOTIONS.EXCITED);
       this.say(`Stage ${stage} passed cleanly! Structural integrity holding!`);
