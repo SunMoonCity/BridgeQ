@@ -7,9 +7,19 @@ import { budgetManager } from './economy/budget.js';
 import { getRoundConfig } from './config/round-config.js';
 import { GAME_STATES, EVENTS } from './config/constants.js';
 import { eventBus } from './core/event-bus.js';
+import { LogicalGraph } from './builder/graph-model.js';
+import { BridgeRenderer } from './ui/renderer.js';
+
+let renderer = null;
+let graph = null;
 
 function initApp() {
-  console.log('[Technothlon Bridge Game] Initializing Phase 1 Skeleton...');
+  console.log('[Technothlon Bridge Game] Initializing Application...');
+
+  const canvas = document.getElementById('gameCanvas');
+  graph = new LogicalGraph();
+  renderer = new BridgeRenderer(canvas);
+  renderer.setGraph(graph);
 
   // Initialize UI systems
   hud.init();
@@ -18,28 +28,35 @@ function initApp() {
   // Load Round 1 config
   const round1 = getRoundConfig(1);
   if (round1) {
+    graph.initEnvironment(round1.cliffs);
+    renderer.setRound(round1);
     budgetManager.init(round1.budget);
     gameState.setRound(1, round1);
   }
 
-  // Setup construction panel reveal on click/interaction (wireframe requirement)
-  const leftZone = document.getElementById('leftConstructionZone');
-  const constructionCard = document.getElementById('constructionCard');
-  const canvas = document.getElementById('gameCanvas');
-
-  // Fit canvas to window
+  // Handle window resizing
   function resizeCanvas() {
-    if (canvas) {
+    if (canvas && renderer) {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = canvas.parentElement.clientHeight;
-      drawInitialPlaceholder(canvas);
+      renderer.fitToScreen();
     }
   }
 
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // Reveal construction on left cliff click
+  // Continuous animation/render loop
+  function renderLoop() {
+    renderer.render();
+    requestAnimationFrame(renderLoop);
+  }
+  requestAnimationFrame(renderLoop);
+
+  // Setup construction panel reveal on click/interaction (wireframe requirement)
+  const leftZone = document.getElementById('leftConstructionZone');
+  const constructionCard = document.getElementById('constructionCard');
+
   if (canvas) {
     canvas.addEventListener('click', (e) => {
       const rect = canvas.getBoundingClientRect();
@@ -77,67 +94,13 @@ function initApp() {
     if (leftZone && constructionCard) {
       leftZone.classList.add('interactive');
       constructionCard.classList.add('active');
+      if (renderer) renderer.setBuildingActive(true);
       gameState.transitionTo(GAME_STATES.BUILDING);
       eventBus.emit(EVENTS.BUILD_STARTED);
     }
   }
 
   console.log('[Technothlon Bridge Game] Initialization complete.');
-}
-
-function drawInitialPlaceholder(canvas) {
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return;
-
-  const w = canvas.width;
-  const h = canvas.height;
-
-  // Background
-  ctx.fillStyle = '#f8fafc';
-  ctx.fillRect(0, 0, w, h);
-
-  // Coordinate Grid lines
-  ctx.strokeStyle = '#e2e8f0';
-  ctx.lineWidth = 1;
-  const gridSize = 40;
-  for (let x = 0; x < w; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let y = 0; y < h; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-
-  // Left & Right Cliffs
-  const groundY = h * 0.65;
-  const cliffW = 200;
-
-  // Left cliff
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(0, groundY, cliffW, h - groundY);
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(0, groundY, cliffW, 20);
-
-  // Right cliff
-  ctx.fillStyle = '#78350f';
-  ctx.fillRect(w - cliffW, groundY, cliffW, h - groundY);
-  ctx.fillStyle = '#22c55e';
-  ctx.fillRect(w - cliffW, groundY, cliffW, 20);
-
-  // Fixed Anchor Circles
-  ctx.fillStyle = '#ef4444';
-  ctx.beginPath();
-  ctx.arc(cliffW, groundY, 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(w - cliffW, groundY, 6, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 window.addEventListener('DOMContentLoaded', initApp);
