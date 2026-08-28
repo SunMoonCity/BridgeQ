@@ -21,12 +21,13 @@ export class FailureDetector {
   }
 
   /**
-   * Check physics world for structural failures
+   * Check physics world and active vehicles for structural failures
    * @param {import('./physics-world.js').PhysicsWorld} world
    * @param {number} simulationTime - Current elapsed simulation time in seconds
+   * @param {import('./vehicle.js').Vehicle[]} vehicles - Optional list of active vehicles
    * @returns {{ failed: boolean, failure?: object }}
    */
-  check(world, simulationTime = 0) {
+  check(world, simulationTime = 0, vehicles = []) {
     if (!world) return { failed: false };
 
     // 1. Check for broken or over-stressed structural constraints
@@ -69,6 +70,22 @@ export class FailureDetector {
           time: simulationTime,
           message: `Bridge node ${id} suffered catastrophic sagging deflection (${sag.toFixed(1)}m).`
         });
+      }
+    }
+
+    // 3. Check for falling vehicle failures
+    if (Array.isArray(vehicles)) {
+      for (const vehicle of vehicles) {
+        if (vehicle.hasFallen) {
+          return this.recordFailure({
+            reason: FAILURE_REASONS.VEHICLE_FALL,
+            vehicleId: vehicle.id,
+            vehicleX: vehicle.x,
+            vehicleY: vehicle.y,
+            time: simulationTime,
+            message: `Vehicle #${vehicle.id} fell through bridge into the abyss at x=${vehicle.x.toFixed(1)}m.`
+          });
+        }
       }
     }
 

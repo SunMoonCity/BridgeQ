@@ -21,6 +21,7 @@ export class PhysicsSimulation {
     this.failureDetector = new FailureDetector(options.failureOptions || {});
     this.elapsedTime = 0;
     this.tickCount = 0;
+    this.vehicles = []; // Active Vehicle instances
     this.isRunning = false;
     this.isFailed = false;
 
@@ -81,7 +82,7 @@ export class PhysicsSimulation {
     this.tickCount++;
 
     // 4. Update member stresses and check for structural failure
-    const failureResult = this.failureDetector.check(this.world, this.elapsedTime);
+    const failureResult = this.failureDetector.check(this.world, this.elapsedTime, this.vehicles);
     if (failureResult.failed) {
       this.isFailed = true;
       this.isRunning = false;
