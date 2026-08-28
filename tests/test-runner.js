@@ -7,6 +7,7 @@ import './equation-parser.test.js';
 import './sampler.test.js';
 import './graph-model.test.js';
 import './viewport.test.js';
+import './piece-manager.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
