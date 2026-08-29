@@ -12,6 +12,8 @@ import { LogicalGraph } from './builder/graph-model.js';
 import { BridgeRenderer } from './ui/renderer.js';
 import { BuildController } from './ui/build-controller.js';
 
+import { resultModal } from './ui/result-modal.js';
+import { gameController } from './core/game-controller.js';
 import { timer } from './core/timer.js';
 
 let renderer = null;
@@ -30,6 +32,7 @@ function initApp() {
   hud.init();
   character.init();
   toast.init();
+  resultModal.init();
 
   // Load Round 1 config
   const round1 = getRoundConfig(1);
