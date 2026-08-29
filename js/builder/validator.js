@@ -176,24 +176,10 @@ export class BridgeValidator {
   static validateRoadContinuity(graph, roundConfig) {
     const errors = [];
 
-    // Extract cliff anchors first — needed for error messages and BFS
-    const cliffs = roundConfig ? roundConfig.cliffs : [];
-    if (cliffs.length < 2) {
-      errors.push('Round configuration requires at least left and right cliffs.');
-      return { valid: false, errors };
-    }
-
-    const leftCliff = cliffs[0];
-    const rightCliff = cliffs[cliffs.length - 1];
-
     // Filter only road edges
     const roadEdges = Array.from(graph.edges.values()).filter(e => e.isRoad);
     if (roadEdges.length === 0) {
-      errors.push(
-        `No road deck pieces constructed. ` +
-        `Select the "Road Deck" material and plot a piece spanning x=${leftCliff.x} to x=${rightCliff.x}. ` +
-        `Vehicles cannot cross without a road deck!`
-      );
+      errors.push('No road deck pieces constructed. Vehicles require a road deck to cross!');
       return { valid: false, errors };
     }
 
@@ -205,6 +191,16 @@ export class BridgeValidator {
       roadAdjacency.get(edge.vertexAId).add(edge.vertexBId);
       roadAdjacency.get(edge.vertexBId).add(edge.vertexAId);
     }
+
+    // Find the left and right cliff anchors from round config
+    const cliffs = roundConfig ? roundConfig.cliffs : [];
+    if (cliffs.length < 2) {
+      errors.push('Round configuration requires at least left and right cliffs.');
+      return { valid: false, errors };
+    }
+
+    const leftCliff = cliffs[0];
+    const rightCliff = cliffs[cliffs.length - 1];
 
     const leftAnchor = graph.findCanonicalVertexAt(leftCliff.x, leftCliff.y);
     const rightAnchor = graph.findCanonicalVertexAt(rightCliff.x, rightCliff.y);
@@ -239,10 +235,7 @@ export class BridgeValidator {
     }
 
     if (!pathFound) {
-      errors.push(
-        `Road deck is not continuous from the West cliff (x=${leftCliff.x}) to the East cliff (x=${rightCliff.x}). ` +
-        `Ensure your road piece spans the full width — set Min Bound to ${leftCliff.x} and Max Bound to ${rightCliff.x}.`
-      );
+      errors.push('Road deck is not continuous from the West cliff entrance to the East cliff exit.');
     }
 
     return {

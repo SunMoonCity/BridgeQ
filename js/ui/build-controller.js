@@ -136,7 +136,6 @@ export class BuildController {
     const rangeMin    = parseFloat(this.rangeMin ? this.rangeMin.value : '0');
     const rangeMax    = parseFloat(this.rangeMax ? this.rangeMax.value : '400');
     const isRoad      = material === 'road';
-
     if (isNaN(rangeMin) || isNaN(rangeMax)) {
       this.notify('Domain bounds must be valid numbers.', 'error');
       return;
@@ -145,7 +144,6 @@ export class BuildController {
       this.notify('Min bound must be less than Max bound.', 'error');
       return;
     }
-
     const result = PieceManager.addPieceTransaction(
       this.graph,
       this.budgetManager,

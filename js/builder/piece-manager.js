@@ -75,7 +75,7 @@ export class PieceManager {
     if (!chargeResult.success) {
       return { success: false, error: chargeResult.error };
     }
-
+    
     // 8. Commit Piece to Logical Graph
     const graphResult = graph.addPiece({
       id: nextPieceId,
@@ -87,6 +87,7 @@ export class PieceManager {
       points: sampleResult.points,
       cost: costCalc.cost
     });
+    
 
     // 9. Atomic Rollback if graph commit fails
     if (!graphResult.success) {

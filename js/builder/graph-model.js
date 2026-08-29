@@ -159,7 +159,7 @@ export class LogicalGraph {
   /**
    * Create an edge between two vertices
    */
-  createEdge(vertexAId, vertexBId, pieceId, material, isRoad = false) {
+   createEdge(vertexAId, vertexBId, pieceId, material, isRoad = false) {
     if (vertexAId === vertexBId) {
       return null; // Self-loop edge is disallowed
     }
@@ -239,7 +239,6 @@ export class LogicalGraph {
         }
       }
     }
-
     const piece = new LogicalPiece(
       pieceId,
       equation,
