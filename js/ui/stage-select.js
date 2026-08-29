@@ -3,6 +3,7 @@
 import { eventBus } from '../core/event-bus.js';
 import { EVENTS } from '../config/constants.js';
 import { getRoundConfig, getTotalRounds } from '../config/round-config.js';
+import { gameController } from '../core/game-controller.js';
 
 export class StageSelectManager {
   constructor() {
@@ -10,17 +11,37 @@ export class StageSelectManager {
     this.playerGreetingEl = null;
     this.gridEl = null;
     this.playerData = null;
+    this.completedRounds = new Set();
     this.onStageSelect = null;
+    this.devMode = false;
   }
 
   /**
    * Initialize Stage Select DOM and events
    */
   init(containerEl = null) {
-    this.containerEl = containerEl || document.getElementById('stageSelectOverlay');
-    if (!this.containerEl) {
-      this.createStageDOM();
+    if (typeof document !== 'undefined') {
+      this.containerEl = containerEl || document.getElementById('stageSelectOverlay');
+      if (!this.containerEl) {
+        this.createStageDOM();
+      }
     }
+
+    // Listen for round completions to update progression state
+    eventBus.on(EVENTS.ROUND_COMPLETED, () => {
+      if (gameController && gameController.currentRoundNumber) {
+        this.completedRounds.add(gameController.currentRoundNumber);
+        this.renderStages();
+      }
+    });
+
+    eventBus.on(EVENTS.STAGE_FAILED, () => {
+      if (gameController && gameController.currentRoundNumber) {
+        this.completedRounds.add(gameController.currentRoundNumber);
+        this.renderStages();
+      }
+    });
+
     this.renderStages();
   }
 
@@ -116,31 +137,71 @@ export class StageSelectManager {
   }
 
   /**
-   * Check if stage is unlocked (default: all rounds 1-3 unlocked for playtest unless specified in playerData)
+   * Enable/disable development mode (unlocks all stages for debugging if true)
+   */
+  setDevMode(enabled) {
+    this.devMode = !!enabled;
+    this.renderStages();
+  }
+
+  /**
+   * Check if stage is unlocked
+   * Rule: Stage 1 is always unlocked. Stage N requires Stage N-1 to be completed.
    */
   isStageUnlocked(roundNumber) {
-    if (!this.playerData) return true; // Default standalone fallback
+    if (this.devMode) return true; // Debug override
     if (roundNumber === 1) return true;
-    const completed = this.playerData.roundsCompleted || [];
-    return completed.includes(roundNumber - 1);
+
+    // Check explicit playerData from session/DB if provided
+    if (this.playerData && Array.isArray(this.playerData.roundsCompleted)) {
+      return this.playerData.roundsCompleted.includes(roundNumber - 1);
+    }
+
+    // Check completedRounds set or gameController in-memory roundScores
+    if (this.completedRounds.has(roundNumber - 1)) {
+      return true;
+    }
+    if (gameController && gameController.roundScores && gameController.roundScores.has(roundNumber - 1)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
    * Check if stage was completed
    */
   isStageCompleted(roundNumber) {
-    if (!this.playerData || !this.playerData.roundsCompleted) return false;
-    return this.playerData.roundsCompleted.includes(roundNumber);
+    if (this.playerData && Array.isArray(this.playerData.roundsCompleted)) {
+      return this.playerData.roundsCompleted.includes(roundNumber);
+    }
+    if (this.completedRounds.has(roundNumber)) {
+      return true;
+    }
+    if (gameController && gameController.roundScores && gameController.roundScores.has(roundNumber)) {
+      return true;
+    }
+    return false;
   }
 
   /**
-   * Handle Stage selection
+   * Handle Stage selection with strict lock guard
    */
   selectStage(roundNumber) {
+    if (!this.isStageUnlocked(roundNumber)) {
+      console.warn(`[StageSelect] Stage ${roundNumber} is locked. Complete Stage ${roundNumber - 1} first.`);
+      eventBus.emit(EVENTS.NOTIFICATION, {
+        message: `Stage ${roundNumber} is locked. Complete Stage ${roundNumber - 1} first!`,
+        type: 'warning'
+      });
+      return false;
+    }
+
     eventBus.emit(EVENTS.STAGE_SELECTED || 'STAGE_SELECTED', { roundNumber });
     if (typeof this.onStageSelect === 'function') {
       this.onStageSelect(roundNumber);
     }
+    return true;
   }
 
   show() {
