@@ -12,6 +12,8 @@ import { LogicalGraph } from './builder/graph-model.js';
 import { BridgeRenderer } from './ui/renderer.js';
 import { BuildController } from './ui/build-controller.js';
 
+import { timer } from './core/timer.js';
+
 let renderer = null;
 let graph = null;
 let buildController = null;
@@ -35,6 +37,7 @@ function initApp() {
     graph.initEnvironment(round1.cliffs);
     renderer.setRound(round1);
     budgetManager.init(round1.budget);
+    timer.init(round1.buildTimeSeconds);
     gameState.setRound(1, round1);
   }
 
@@ -47,6 +50,16 @@ function initApp() {
     character
   });
   buildController.init();
+
+  // Listen for timer expiration -> stop timer, notify player, and auto-trigger bridge test/validation
+  eventBus.on(EVENTS.TIMER_EXPIRED, () => {
+    toast.show('Time is up! Construction phase locked. Finalizing bridge...', 'warning');
+    character.setEmotion('😰');
+    character.say('Build time expired! Let us test your bridge structure!');
+    if (buildController) {
+      buildController.handleTestBridge();
+    }
+  });
 
   // Handle window resizing
   function resizeCanvas() {
@@ -108,11 +121,12 @@ function initApp() {
       constructionCard.classList.add('active');
       if (renderer) renderer.setBuildingActive(true);
       gameState.transitionTo(GAME_STATES.BUILDING);
+      timer.start();
       eventBus.emit(EVENTS.BUILD_STARTED);
     }
   }
 
-  console.log('[Technothlon Bridge Game] Initialization complete. Build Phase 7 UI active.');
+  console.log('[Technothlon Bridge Game] Initialization complete. Phase 14 Build Timer active.');
 }
 
 window.addEventListener('DOMContentLoaded', initApp);

@@ -43,6 +43,13 @@ class HUD {
   onTimerTick(seconds) {
     if (this.timeEl) {
       this.timeEl.textContent = formatTimeMMSS(seconds);
+      if (seconds <= 30 && seconds > 0) {
+        this.timeEl.style.color = '#dc2626';
+        this.timeEl.style.fontWeight = '700';
+      } else {
+        this.timeEl.style.color = '';
+        this.timeEl.style.fontWeight = '';
+      }
     }
   }
 }

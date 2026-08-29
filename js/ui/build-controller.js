@@ -13,6 +13,7 @@ import { PieceManager } from '../builder/piece-manager.js';
 import { BridgeValidator } from '../builder/validator.js';
 import { eventBus } from '../core/event-bus.js';
 import { gameState } from '../core/game-state.js';
+import { timer } from '../core/timer.js';
 import { EVENTS, GAME_STATES } from '../config/constants.js';
 
 /** Euclidean distance between two points */
@@ -269,6 +270,7 @@ export class BuildController {
   // ---------------------------------------------------------------------------
 
   handleTestBridge() {
+    timer.stop();
     const validation = BridgeValidator.validate(this.graph, this.budgetManager, this.roundConfig);
 
     if (!validation.valid) {
