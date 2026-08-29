@@ -16,6 +16,7 @@ import './road-surface.test.js';
 import './vehicle.test.js';
 import './load-test-runner.test.js';
 import './timer.test.js';
+import './round-progression.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
