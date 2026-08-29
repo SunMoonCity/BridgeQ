@@ -14,6 +14,7 @@ import { BuildController } from './ui/build-controller.js';
 
 import { resultModal } from './ui/result-modal.js';
 import { gameController } from './core/game-controller.js';
+import { stageSelectManager } from './ui/stage-select.js';
 import { timer } from './core/timer.js';
 
 let renderer = null;
@@ -33,6 +34,7 @@ function initApp() {
   character.init();
   toast.init();
   resultModal.init();
+  stageSelectManager.init();
 
   // Load Round 1 config
   const round1 = getRoundConfig(1);
@@ -53,6 +55,20 @@ function initApp() {
     character
   });
   buildController.init();
+
+  // GameController binding (Phase 15)
+  gameController.bindDependencies({
+    graph,
+    renderer,
+    buildController
+  });
+
+  // Wire Stage Selection (Phase 18) -> hides Stage Overlay and loads selected round
+  eventBus.on(EVENTS.STAGE_SELECTED || 'STAGE_SELECTED', ({ roundNumber }) => {
+    stageSelectManager.hide();
+    gameController.loadRound(roundNumber);
+    toast.show(`Stage ${roundNumber} Loaded! Click left cliff to build.`, 'info');
+  });
 
   // Listen for timer expiration -> stop timer, notify player, and auto-trigger bridge test/validation
   eventBus.on(EVENTS.TIMER_EXPIRED, () => {

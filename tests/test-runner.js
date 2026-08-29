@@ -19,6 +19,7 @@ import './timer.test.js';
 import './round-progression.test.js';
 import './character.test.js';
 import './ui-polish.test.js';
+import './stage-select.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
