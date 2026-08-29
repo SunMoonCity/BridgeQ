@@ -17,6 +17,7 @@ import './vehicle.test.js';
 import './load-test-runner.test.js';
 import './timer.test.js';
 import './round-progression.test.js';
+import './character.test.js';
 
 console.log('\n========================================');
 console.log(' ALL TEST SUITES PASSED SUCCESSFULLY!');
