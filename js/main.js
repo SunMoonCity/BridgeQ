@@ -16,6 +16,9 @@ import { resultModal } from './ui/result-modal.js';
 import { gameController } from './core/game-controller.js';
 import { stageSelectManager } from './ui/stage-select.js';
 import { timer } from './core/timer.js';
+import { PhysicsBridgeBuilder } from './physics/physics-bridge-builder.js';
+import { PhysicsSimulation } from './physics/physics-simulation.js';
+import { LoadTestRunner } from './physics/load-test-runner.js';
 
 let renderer = null;
 let graph = null;
@@ -70,6 +73,53 @@ function initApp() {
     toast.show(`Stage ${roundNumber} Loaded! Click left cliff to build.`, 'info');
   });
 
+  let activeLoadRunner = null;
+  let activeSimulation = null;
+
+  // Listen for TEST_STARTED -> convert graph to physics, initialize simulation & load runner
+  eventBus.on(EVENTS.TEST_STARTED, ({ graph, summary }) => {
+    console.log('[Main] Finalizing graph and initializing physics simulation...');
+    
+    // 1. Convert LogicalGraph 1:1 into PhysicsWorld
+    const physicsWorld = PhysicsBridgeBuilder.buildPhysicsWorld(graph);
+    
+    // 2. Instantiate PhysicsSimulation engine
+    activeSimulation = new PhysicsSimulation(physicsWorld);
+    
+    // 3. Instantiate LoadTestRunner
+    const roundConfig = gameController.activeRoundConfig || getRoundConfig(gameController.currentRoundNumber || 1);
+    activeLoadRunner = new LoadTestRunner(activeSimulation, roundConfig);
+
+    // Update renderer continuously during simulation
+    activeLoadRunner.onProgress = ({ vehicles }) => {
+      if (renderer) {
+        renderer.setSimulationState(
+          activeSimulation.getNodePositions(),
+          activeSimulation.getEdgeStressMap(),
+          vehicles
+        );
+      }
+    };
+
+    // Start 5-stage load test
+    activeLoadRunner.start();
+  });
+
+  // Wire ResultModal actions for Next Round and Retry Stage
+  resultModal.onNext = () => {
+    activeLoadRunner = null;
+    activeSimulation = null;
+    if (renderer) renderer.setSimulationState(null, null, []);
+    gameController.nextRound();
+  };
+
+  resultModal.onRetry = () => {
+    activeLoadRunner = null;
+    activeSimulation = null;
+    if (renderer) renderer.setSimulationState(null, null, []);
+    gameController.loadRound(gameController.currentRoundNumber);
+  };
+
   // Listen for timer expiration -> stop timer, notify player, and auto-trigger bridge test/validation
   eventBus.on(EVENTS.TIMER_EXPIRED, () => {
     toast.show('Time is up! Construction phase locked. Finalizing bridge...', 'warning');
@@ -92,8 +142,17 @@ function initApp() {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
+  let lastTime = performance.now();
+
   // Continuous animation/render loop
-  function renderLoop() {
+  function renderLoop(currentTime) {
+    const dt = Math.min((currentTime - lastTime) / 1000, 0.05) || (1 / 60);
+    lastTime = currentTime;
+
+    if (activeLoadRunner && activeLoadRunner.isRunning) {
+      activeLoadRunner.step(dt);
+    }
+
     renderer.render();
     requestAnimationFrame(renderLoop);
   }
