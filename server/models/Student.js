@@ -21,10 +21,8 @@ const StudentSchema = new mongoose.Schema(
     rollNo: {
       type: String,
       required: [true, 'Roll number is required'],
-      unique: true,
       trim: true,
       uppercase: true,
-      index: true
     },
     password: {
       type: String,
@@ -39,7 +37,7 @@ const StudentSchema = new mongoose.Schema(
     },
 
     /* ── Extensible profile fields ────────────────────── */
-    name:       { type: String, trim: true, default: '' },
+    name:       { type: String, unique:true, trim: true, default: '' },
     department: { type: String, trim: true, default: '' },
     year:       { type: Number, min: 1, max: 5 }
   },
