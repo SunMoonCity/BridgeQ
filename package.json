@@ -4,6 +4,7 @@
   "description": "Technothlon Bridge-Building Competition Game",
   "type": "module",
   "scripts": {
+    "start": "node server/server.js",
     "test": "node tests/test-runner.js",
     "serve": "node server.js"
   },
