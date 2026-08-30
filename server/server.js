@@ -29,12 +29,16 @@ const allowedOrigins = (process.env.CLIENT_URL || '')
   if (!allowedOrigins.includes(o)) allowedOrigins.push(o);
 });
 
+// Auto-allow *.onrender.com (Render hosting)
+const corsOriginFn = (origin, cb) => {
+  if (!origin) return cb(null, true);
+  if (allowedOrigins.includes(origin)) return cb(null, true);
+  if (/\.onrender\.com$/.test(origin)) return cb(null, true);
+  cb(new Error('CORS: origin not allowed — ' + origin));
+};
+
 app.use(cors({
-  origin (origin, cb) {
-    // Allow requests with no origin (e.g. file:// opened directly)
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(new Error('CORS: origin not allowed — ' + origin));
-  },
+  origin: corsOriginFn,
   credentials: true
 }));
 
@@ -77,8 +81,8 @@ app.use((err, req, res, _next) => {
 
 // ── Start listening ────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`[server] Techno Bridge backend listening on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[server] Techno Bridge backend listening on port ${PORT}`);
 });
 
 // ── Graceful shutdown ──────────────────────────────────────
