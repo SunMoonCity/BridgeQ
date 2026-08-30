@@ -19,6 +19,22 @@ const Student    = require('./models/Student');
 async function initDB() {
   await connectDB();
 
+  // ── Drop stale unique index on rollNo (removed from schema) ──
+  // Mongoose does NOT auto-drop indexes when unique:true is removed from the schema.
+  // If the old index still exists in MongoDB, duplicate rollNos would fail silently.
+  try {
+    const collection = Student.collection;
+    const indexes    = await collection.indexes();
+    const hasRollIdx = indexes.some(idx => idx.key && idx.key.rollNo !== undefined && idx.unique);
+    if (hasRollIdx) {
+      await collection.dropIndex('rollNo_1');
+      console.log('[server] ✅ Dropped stale unique index on rollNo — duplicates now allowed');
+    }
+  } catch (err) {
+    // Index may not exist or already dropped — safe to ignore
+    console.log('[server] rollNo index cleanup (skipped or already clean):', err.message);
+  }
+
   // Auto-create admin on first boot (safe if already exists)
   try {
     const email    = process.env.ADMIN_EMAIL;
