@@ -116,6 +116,13 @@
     return apiFetch('/api/admin/students/' + id, { method: 'DELETE' });
   }
 
+  async function adminBulkCreateStudents(students) {
+    return apiFetch('/api/admin/students/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ students })
+    });
+  }
+
   async function adminGetMaterials() {
     return apiFetch('/api/admin/materials');
   }
@@ -177,6 +184,7 @@
     adminGetStudents,
     adminCreateStudent,
     adminDeleteStudent,
+    adminBulkCreateStudents,
     adminGetStudentProgress,
     adminGetMaterials,
     adminCreateMaterial,

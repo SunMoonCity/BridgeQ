@@ -162,4 +162,68 @@ async function getStudentProgressAdmin(req, res) {
   }
 }
 
-module.exports = { createStudent, getStudents, getStudent, deleteStudent, getStudentProgressAdmin };
+/* ────────────────────────────────────────────────────────────
+   POST /api/admin/students/bulk
+   Bulk-create students from CSV rows.
+   Body: { students: [{ name, rollNo, email }] }
+   Password is fixed to "Pass@1234" for every row.
+──────────────────────────────────────────────────────────── */
+const BULK_PASSWORD = 'Pass@1234';
+
+async function bulkCreateStudents(req, res) {
+  try {
+    const rows = req.body.students;
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({ success: false, message: 'No student rows provided' });
+    }
+    if (rows.length > 500) {
+      return res.status(400).json({ success: false, message: 'Maximum 500 students per bulk upload' });
+    }
+
+    const results = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const { name, rollNo, email } = rows[i];
+      const rowNum = i + 1;
+
+      if (!rollNo || !email) {
+        results.push({ row: rowNum, rollNo: rollNo || '', email: email || '', status: 'skipped', reason: 'Missing rollNo or email' });
+        continue;
+      }
+
+      try {
+        const student = await Student.create({
+          email:    email.trim().toLowerCase(),
+          rollNo:   rollNo.trim(),
+          password: BULK_PASSWORD,
+          name:     (name || '').trim(),
+          role:     'student'
+        });
+        results.push({ row: rowNum, rollNo: student.rollNo, email: student.email, name: student.name, status: 'created' });
+      } catch (err) {
+        let reason = 'Server error';
+        if (err.code === 11000) {
+          const field = Object.keys(err.keyPattern || {})[0] || 'field';
+          reason = `Duplicate ${field}`;
+        } else if (err.name === 'ValidationError') {
+          reason = Object.values(err.errors).map(e => e.message).join('; ');
+        }
+        results.push({ row: rowNum, rollNo: rollNo || '', email: email || '', status: 'skipped', reason });
+      }
+    }
+
+    const created = results.filter(r => r.status === 'created').length;
+    const skipped = results.filter(r => r.status === 'skipped').length;
+
+    return res.status(200).json({
+      success: true,
+      message: `Bulk import complete: ${created} created, ${skipped} skipped`,
+      data: { created, skipped, results }
+    });
+  } catch (err) {
+    console.error('[admin] bulkCreateStudents error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
+
+module.exports = { createStudent, getStudents, getStudent, deleteStudent, getStudentProgressAdmin, bulkCreateStudents };

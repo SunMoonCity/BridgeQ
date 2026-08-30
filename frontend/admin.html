@@ -33,6 +33,7 @@
       </div>
       <div>
         <button class="px-btn" id="open-create-btn">[ + CREATE STUDENT ]</button>
+        <button class="px-btn" id="open-bulk-btn" style="background: #0891b2; margin-left: 8px;">[ 📂 BULK CSV IMPORT ]</button>
         <button class="px-btn" id="open-create-mat-btn" style="display: none; background: #059669;">[ + CREATE MATERIAL ]</button>
         <button class="px-btn" id="open-create-round-btn" style="display: none; background: #7c3aed;">[ + ADD ROUND ]</button>
       </div>
@@ -392,6 +393,102 @@
       <div class="px-modal-actions" style="margin-top: 24px;">
         <button class="px-btn px-btn--outline" id="close-student-details-btn" style="width: 100%;">[ CLOSE ]</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Bulk CSV Import Modal -->
+  <div class="px-modal-backdrop" id="bulk-modal">
+    <div class="px-modal" style="width: min(95vw, 860px); max-height: 90vh; overflow-y: auto;">
+      <div class="px-modal__header">
+        <div class="px-modal__title">📂 Bulk CSV Import — Students</div>
+        <button class="px-modal__close" id="close-bulk-modal-btn">&times;</button>
+      </div>
+
+      <!-- Step 1: Upload -->
+      <div id="bulk-step-upload">
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 12px; font-family: 'VT323', monospace; font-size: 16px;">
+          Upload a CSV file with columns: <strong style="color:#38bdf8">name, rollNo, email</strong><br>
+          Password will be set to <strong style="color: #4ade80;">Pass@1234</strong> for every student.
+        </p>
+
+        <!-- Download template link -->
+        <div style="margin-bottom: 14px;">
+          <button class="px-btn px-btn--sm px-btn--outline" id="bulk-download-template-btn">⬇ DOWNLOAD CSV TEMPLATE</button>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div id="bulk-drop-zone" style="
+          border: 2px dashed #38bdf8;
+          border-radius: 8px;
+          padding: 36px 24px;
+          text-align: center;
+          cursor: pointer;
+          transition: background 0.2s, border-color 0.2s;
+          font-family: 'VT323', monospace;
+          font-size: 20px;
+          color: #94a3b8;
+        ">
+          <div style="font-size: 40px; margin-bottom: 8px;">📁</div>
+          <div>DRAG & DROP your CSV here, or</div>
+          <label for="bulk-file-input" style="color: #38bdf8; cursor: pointer; text-decoration: underline;">CLICK TO BROWSE</label>
+          <input type="file" id="bulk-file-input" accept=".csv,text/csv" style="display:none">
+        </div>
+
+        <div id="bulk-parse-status" style="margin-top: 10px;"></div>
+      </div>
+
+      <!-- Step 2: Preview -->
+      <div id="bulk-step-preview" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-family:'VT323',monospace; font-size:18px; color:#94a3b8;" id="bulk-preview-count"></div>
+          <button class="px-btn px-btn--sm px-btn--outline" id="bulk-reset-btn">↩ CHOOSE ANOTHER FILE</button>
+        </div>
+        <div class="px-table-wrap" style="max-height: 300px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Roll Number</th>
+                <th>Email</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="bulk-preview-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="bulk-import-status" style="margin-top: 12px;"></div>
+
+        <div class="px-modal-actions" style="margin-top: 16px;">
+          <button class="px-btn" id="bulk-submit-btn" style="background: #0891b2;">[ 🚀 IMPORT ALL STUDENTS ]</button>
+          <button class="px-btn px-btn--outline" id="bulk-cancel-btn">[ CANCEL ]</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Results -->
+      <div id="bulk-step-results" style="display:none;">
+        <div id="bulk-results-summary" style="font-family:'VT323',monospace; font-size:20px; margin-bottom:14px;"></div>
+        <div class="px-table-wrap" style="max-height: 340px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>Roll No</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Result</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="bulk-results-tbody"></tbody>
+          </table>
+        </div>
+        <div class="px-modal-actions" style="margin-top: 16px;">
+          <button class="px-btn" id="bulk-done-btn" style="background: #059669; width:100%;">[ ✓ DONE — CLOSE ]</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

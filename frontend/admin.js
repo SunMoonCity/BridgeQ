@@ -847,5 +847,244 @@
     document.getElementById('next-btn').addEventListener('click', () => {
       if (currentPage < totalPages) loadStudents(++currentPage, searchQuery);
     });
+
+    /* ── Bulk CSV Import ──────────────────────────────────── */
+    initBulkImport();
   });
+
+  /* ══════════════════════════════════════════════════════════
+     BULK CSV IMPORT MODULE
+  ══════════════════════════════════════════════════════════ */
+  let bulkParsedRows = [];
+  let isBulkSubmitting = false;
+
+  function openBulkModal() {
+    document.getElementById('bulk-modal').classList.add('open');
+    resetBulkModal();
+  }
+
+  function closeBulkModal() {
+    document.getElementById('bulk-modal').classList.remove('open');
+  }
+
+  function resetBulkModal() {
+    bulkParsedRows = [];
+    isBulkSubmitting = false;
+    document.getElementById('bulk-step-upload').style.display  = 'block';
+    document.getElementById('bulk-step-preview').style.display = 'none';
+    document.getElementById('bulk-step-results').style.display = 'none';
+    document.getElementById('bulk-parse-status').textContent   = '';
+    document.getElementById('bulk-file-input').value           = '';
+    setBulkDropZoneHighlight(false);
+  }
+
+  function setBulkDropZoneHighlight(on) {
+    const zone = document.getElementById('bulk-drop-zone');
+    zone.style.background    = on ? 'rgba(56,189,248,0.08)' : '';
+    zone.style.borderColor   = on ? '#38bdf8' : '';
+  }
+
+  /* ── Robust CSV parser (handles quoted fields & CRLF) ── */
+  function parseCSV(text) {
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const rows = [];
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const fields = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes) {
+          fields.push(cur.trim());
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      fields.push(cur.trim());
+      rows.push(fields);
+    }
+    return rows;
+  }
+
+  /* Normalise column header strings */
+  function normHeader(s) { return s.toLowerCase().replace(/[\s_\-]/g, ''); }
+
+  function processCSVText(text) {
+    const setBulkParseStatus = (msg, isErr) => {
+      const el = document.getElementById('bulk-parse-status');
+      el.textContent = msg;
+      el.className   = isErr ? 'status--err' : 'status--ok';
+    };
+
+    const rows = parseCSV(text);
+    if (rows.length < 2) {
+      setBulkParseStatus('⚠ CSV must have a header row and at least one data row.', true);
+      return;
+    }
+
+    /* Map header → index */
+    const headers = rows[0].map(normHeader);
+    const idx = {
+      name:   headers.findIndex(h => h === 'name'),
+      rollNo: headers.findIndex(h => h === 'rollno' || h === 'roll' || h === 'rollnumber'),
+      email:  headers.findIndex(h => h === 'email')
+    };
+
+    if (idx.rollNo === -1 || idx.email === -1) {
+      setBulkParseStatus('⚠ CSV must have "rollNo" and "email" columns.', true);
+      return;
+    }
+
+    bulkParsedRows = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (r.every(c => !c)) continue; // skip blank lines
+      bulkParsedRows.push({
+        name:   idx.name  >= 0 ? r[idx.name]  || '' : '',
+        rollNo: idx.rollNo >= 0 ? r[idx.rollNo] || '' : '',
+        email:  idx.email  >= 0 ? r[idx.email]  || '' : ''
+      });
+    }
+
+    if (bulkParsedRows.length === 0) {
+      setBulkParseStatus('⚠ No data rows found in the CSV.', true);
+      return;
+    }
+
+    setBulkParseStatus('', false);
+    showBulkPreview();
+  }
+
+  function showBulkPreview() {
+    document.getElementById('bulk-step-upload').style.display  = 'none';
+    document.getElementById('bulk-step-preview').style.display = 'block';
+    document.getElementById('bulk-step-results').style.display = 'none';
+
+    document.getElementById('bulk-preview-count').textContent =
+      `${bulkParsedRows.length} student${bulkParsedRows.length !== 1 ? 's' : ''} ready to import  |  Password: Pass@1234`;
+
+    const tbody = document.getElementById('bulk-preview-tbody');
+    tbody.innerHTML = bulkParsedRows.map((r, i) => {
+      const hasRoll  = !!r.rollNo;
+      const hasEmail = !!r.email;
+      const ok = hasRoll && hasEmail;
+      return `<tr style="${ok ? '' : 'opacity:0.55;'}">
+        <td>${i + 1}</td>
+        <td>${r.name  || '<em style="color:#64748b">—</em>'}</td>
+        <td style="font-weight:bold; color:${ok?'#38bdf8':'#ef4444'}">${r.rollNo || '<em>MISSING</em>'}</td>
+        <td>${r.email || '<em style="color:#ef4444">MISSING</em>'}</td>
+        <td style="color:${ok?'#4ade80':'#f87171'}">${ok ? '✓ Ready' : '⚠ Will skip'}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('bulk-import-status').textContent = '';
+  }
+
+  async function handleBulkSubmit() {
+    if (isBulkSubmitting || !bulkParsedRows.length) return;
+    isBulkSubmitting = true;
+
+    const submitBtn = document.getElementById('bulk-submit-btn');
+    submitBtn.disabled    = true;
+    submitBtn.textContent = '[ ⏳ IMPORTING... ]';
+
+    const statusEl = document.getElementById('bulk-import-status');
+    statusEl.textContent = '';
+    statusEl.className   = '';
+
+    try {
+      const result = await window.TechnoBridgeAPI.adminBulkCreateStudents(bulkParsedRows);
+      showBulkResults(result.data);
+      // refresh the students table
+      currentPage = 1;
+      loadStudents(1, searchQuery);
+    } catch (err) {
+      statusEl.textContent = '✗ ' + (err.message || 'Server error');
+      statusEl.className   = 'status--err';
+      isBulkSubmitting     = false;
+      submitBtn.disabled   = false;
+      submitBtn.textContent = '[ 🚀 IMPORT ALL STUDENTS ]';
+    }
+  }
+
+  function showBulkResults(data) {
+    document.getElementById('bulk-step-upload').style.display  = 'none';
+    document.getElementById('bulk-step-preview').style.display = 'none';
+    document.getElementById('bulk-step-results').style.display = 'block';
+
+    const summaryEl = document.getElementById('bulk-results-summary');
+    summaryEl.innerHTML =
+      `<span style="color:#4ade80">✓ ${data.created} Created</span>  ` +
+      (data.skipped ? `<span style="color:#f87171">✗ ${data.skipped} Skipped</span>` : '');
+
+    const tbody = document.getElementById('bulk-results-tbody');
+    tbody.innerHTML = (data.results || []).map(r => {
+      const isOk = r.status === 'created';
+      return `<tr>
+        <td>${r.row}</td>
+        <td style="font-weight:bold; color:#38bdf8">${r.rollNo || '—'}</td>
+        <td>${r.name || '—'}</td>
+        <td>${r.email || '—'}</td>
+        <td style="color:${isOk?'#4ade80':'#f87171'}; font-weight:bold">${isOk ? '✓ Created' : '✗ Skipped'}</td>
+        <td style="color:#94a3b8; font-size:12px">${isOk ? '' : (r.reason || '')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function downloadCSVTemplate() {
+    const csv = 'name,rollNo,email\nAlice Johnson,24BCS0001,alice@example.com\nBob Smith,24BCS0002,bob@example.com\n';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'students_template.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function initBulkImport() {
+    document.getElementById('open-bulk-btn').addEventListener('click', openBulkModal);
+    document.getElementById('close-bulk-modal-btn').addEventListener('click', closeBulkModal);
+    document.getElementById('bulk-cancel-btn').addEventListener('click', closeBulkModal);
+    document.getElementById('bulk-done-btn').addEventListener('click', () => { closeBulkModal(); });
+    document.getElementById('bulk-reset-btn').addEventListener('click', resetBulkModal);
+    document.getElementById('bulk-submit-btn').addEventListener('click', handleBulkSubmit);
+    document.getElementById('bulk-download-template-btn').addEventListener('click', downloadCSVTemplate);
+
+    /* Close on backdrop click */
+    document.getElementById('bulk-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('bulk-modal')) closeBulkModal();
+    });
+
+    /* File input */
+    document.getElementById('bulk-file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => processCSVText(ev.target.result);
+      reader.readAsText(file);
+    });
+
+    /* Drag & Drop */
+    const zone = document.getElementById('bulk-drop-zone');
+    zone.addEventListener('dragover',  (e) => { e.preventDefault(); setBulkDropZoneHighlight(true); });
+    zone.addEventListener('dragleave', ()  => setBulkDropZoneHighlight(false));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      setBulkDropZoneHighlight(false);
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => processCSVText(ev.target.result);
+      reader.readAsText(file);
+    });
+    zone.addEventListener('click', () => document.getElementById('bulk-file-input').click());
+  }
+
 })();
+
