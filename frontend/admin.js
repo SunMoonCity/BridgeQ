@@ -987,6 +987,12 @@
     }).join('');
 
     document.getElementById('bulk-import-status').textContent = '';
+
+    // Always ensure the import button is enabled when preview appears
+    const submitBtn = document.getElementById('bulk-submit-btn');
+    submitBtn.disabled    = false;
+    submitBtn.textContent = '[ 🚀 IMPORT ALL STUDENTS ]';
+    isBulkSubmitting      = false;
   }
 
   async function handleBulkSubmit() {
