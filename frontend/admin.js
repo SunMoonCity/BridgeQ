@@ -198,17 +198,21 @@
     const panelRounds    = document.getElementById('panel-rounds');
 
     const btnCreateStudent = document.getElementById('open-create-btn');
+    const btnBulk          = document.getElementById('open-bulk-btn');
     const btnCreateMat     = document.getElementById('open-create-mat-btn');
     const btnCreateRound   = document.getElementById('open-create-round-btn');
 
     [panelStudents, panelMaterials, panelRounds].forEach(p => p && (p.style.display = 'none'));
     [tabStudents, tabMaterials, tabRounds].forEach(t => t && t.classList.remove('active'));
+    // Hide all tab-specific create buttons (bulk button is always visible)
     [btnCreateStudent, btnCreateMat, btnCreateRound].forEach(b => b && (b.style.display = 'none'));
+    if (btnBulk) btnBulk.style.display = 'none'; // hide by default, show only on students tab
 
     if (activeTab === 'students') {
       tabStudents.classList.add('active');
       panelStudents.style.display = 'block';
       btnCreateStudent.style.display = 'inline-block';
+      if (btnBulk) btnBulk.style.display = 'inline-block'; // show bulk on students tab
     } else if (activeTab === 'materials') {
       tabMaterials.classList.add('active');
       panelMaterials.style.display = 'block';
