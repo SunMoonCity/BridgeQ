@@ -13,8 +13,35 @@ const adminMaterialRoutes = require('./routes/adminMaterialRoutes');
 const adminRoundRoutes    = require('./routes/adminRoundRoutes');
 const gameRoutes          = require('./routes/gameRoutes');
 
-// ── Connect to MongoDB ─────────────────────────────────────
-connectDB();
+const Student    = require('./models/Student');
+
+// ── Connect to MongoDB & auto-seed admin ───────────────────
+async function initDB() {
+  await connectDB();
+
+  // Auto-create admin on first boot (safe if already exists)
+  try {
+    const email    = process.env.ADMIN_EMAIL;
+    const rollNo   = (process.env.ADMIN_ROLL_NO || '').toUpperCase().trim();
+    const password = process.env.ADMIN_PASSWORD;
+
+    if (email && rollNo && password) {
+      const existing = await Student.findOne({ $or: [{ email }, { rollNo }] });
+      if (!existing) {
+        await Student.create({ email, rollNo, password, role: 'admin', name: 'Admin' });
+        console.log(`[server] ✅ Admin account auto-created (${email})`);
+      } else {
+        console.log(`[server] Admin already exists — skipping seed`);
+      }
+    } else {
+      console.warn('[server] ⚠️  ADMIN_EMAIL / ADMIN_ROLL_NO / ADMIN_PASSWORD not set — skipping admin seed');
+    }
+  } catch (err) {
+    console.error('[server] Admin seed error:', err.message);
+  }
+}
+
+initDB();
 
 const app = express();
 
