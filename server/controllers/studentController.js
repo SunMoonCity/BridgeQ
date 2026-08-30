@@ -34,10 +34,12 @@ async function createStudent(req, res) {
       data: student   // toJSON strips password automatically
     });
   } catch (err) {
-    // Duplicate key (email or rollNo already exists)
+    // Duplicate key — email or name must be unique (rollNo is no longer unique)
     if (err.code === 11000) {
-      const field = Object.keys(err.keyPattern)[0];
-      return res.status(400).json({ success: false, message: `A student with that ${field} already exists` });
+      const field = Object.keys(err.keyPattern || {})[0] || 'field';
+      const labels = { email: 'email address', name: 'name' };
+      const label = labels[field] || field;
+      return res.status(400).json({ success: false, message: `A student with that ${label} already exists` });
     }
     if (err.name === 'ValidationError') {
       const messages = Object.values(err.errors).map(e => e.message).join(', ');
@@ -191,12 +193,16 @@ async function bulkCreateStudents(req, res) {
         continue;
       }
 
+      // name is unique in the schema — fall back to rollNo if name is blank
+      // to avoid all nameless rows colliding on the unique empty-string '' index.
+      const resolvedName = (name || '').trim() || rollNo.trim().toUpperCase();
+
       try {
         const student = await Student.create({
           email:    email.trim().toLowerCase(),
           rollNo:   rollNo.trim(),
           password: BULK_PASSWORD,
-          name:     (name || '').trim(),
+          name:     resolvedName,
           role:     'student'
         });
         results.push({ row: rowNum, rollNo: student.rollNo, email: student.email, name: student.name, status: 'created' });
@@ -204,11 +210,12 @@ async function bulkCreateStudents(req, res) {
         let reason = 'Server error';
         if (err.code === 11000) {
           const field = Object.keys(err.keyPattern || {})[0] || 'field';
-          reason = `Duplicate ${field}`;
+          const labels = { email: 'email address', name: 'name' };
+          reason = `Duplicate ${labels[field] || field}`;
         } else if (err.name === 'ValidationError') {
           reason = Object.values(err.errors).map(e => e.message).join('; ');
         }
-        results.push({ row: rowNum, rollNo: rollNo || '', email: email || '', status: 'skipped', reason });
+        results.push({ row: rowNum, rollNo: rollNo || '', email: email || '', name: resolvedName, status: 'skipped', reason });
       }
     }
 
