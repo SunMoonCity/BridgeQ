@@ -71,6 +71,11 @@ export class BuildController {
     this.btnOrientX = document.getElementById('btnOrientX');
     this.canvas     = document.getElementById('gameCanvas');
 
+    this.bindEvents();
+    this.loadMaterialsFromBackend();
+  }
+
+  bindEvents() {
     if (this.btnPlot)   this.btnPlot.addEventListener('click',   () => this.handlePlot());
     if (this.btnDelete) this.btnDelete.addEventListener('click', () => this.handleDelete());
     if (this.btnTest)   this.btnTest.addEventListener('click',   () => this.handleTestBridge());
@@ -84,6 +89,34 @@ export class BuildController {
       this.eqInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') this.handlePlot();
       });
+    }
+  }
+
+  /**
+   * Fetch material configurations & pricing dynamically from backend database
+   */
+  async loadMaterialsFromBackend() {
+    if (!window.TechnoBridgeAPI || !this.materialPicker) return;
+    try {
+      const res = await window.TechnoBridgeAPI.getMaterialConfigs();
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        this.materialPicker.innerHTML = res.data.map((m, idx) => `
+          <div class="material-option ${idx === 0 ? 'selected' : ''}" data-material="${m.key}">
+            ${m.label} (₹${m.price})
+          </div>
+        `).join('');
+
+        // Wire click handlers for dynamic material options
+        const opts = this.materialPicker.querySelectorAll('.material-option');
+        opts.forEach(opt => {
+          opt.addEventListener('click', () => {
+            opts.forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+          });
+        });
+      }
+    } catch (err) {
+      console.warn('[BuildController] Failed to load backend materials:', err.message);
     }
   }
 
@@ -135,7 +168,7 @@ export class BuildController {
     const orientation = this.getOrientation();
     const material    = this.getSelectedMaterial();
     const rangeMin    = parseFloat(this.rangeMin ? this.rangeMin.value : '0');
-    const rangeMax    = parseFloat(this.rangeMax ? this.rangeMax.value : '400');
+    const rangeMax    = parseFloat(this.rangeMax ? this.rangeMax.value : '600');
     const isRoad      = material === 'road';
     if (isNaN(rangeMin) || isNaN(rangeMax)) {
       this.notify('Domain bounds must be valid numbers.', 'error');
@@ -172,6 +205,8 @@ export class BuildController {
           this.character.say(`Nice curve! ${remStr} still in the budget. Keep building!`);
         }
       }
+
+      this.syncPiecesToBackend();
     } else {
       this.notify(result.error || 'Failed to plot piece.', 'error');
       if (this.character) {
@@ -206,9 +241,44 @@ export class BuildController {
         this.character.setEmotion('🤔');
         this.character.say(`Piece removed and ${refStr} refunded. Redesign time!`);
       }
+
+      this.syncPiecesToBackend();
     } else {
       this.notify(result.error || 'Failed to delete piece.', 'error');
     }
+  }
+
+  /**
+   * Sync active placed pieces and remaining budget to MongoDB backend
+   */
+  syncPiecesToBackend() {
+    if (typeof window === 'undefined' || !window.TechnoBridgeAPI || !this.graph) return;
+    const piecesList = Array.from(this.graph.pieces.values()).map(p => ({
+      pieceId: p.pieceId || p.id,
+      equation: p.equation,
+      orientation: p.orientation || 'y-of-x',
+      rangeMin: Array.isArray(p.domain) ? p.domain[0] : (p.rangeMin !== undefined ? p.rangeMin : 0),
+      rangeMax: Array.isArray(p.domain) ? p.domain[1] : (p.rangeMax !== undefined ? p.rangeMax : 600),
+      material: p.materialKey || p.material || 'steel',
+      isRoad: p.isRoad || p.materialKey === 'road' || p.material === 'road',
+      cost: p.cost || 0
+    }));
+
+    const roundNum = (this.roundConfig && (this.roundConfig.roundNumber || this.roundConfig.id))
+      || (typeof gameController !== 'undefined' ? gameController.currentRoundNumber : 1) || 1;
+
+    const remaining = this.budgetManager
+      ? (typeof this.budgetManager.getRemaining === 'function'
+          ? this.budgetManager.getRemaining()
+          : (typeof this.budgetManager.getRemainingBudget === 'function'
+              ? this.budgetManager.getRemainingBudget()
+              : (this.budgetManager.remainingBudget || 0)))
+      : 0;
+
+    window.TechnoBridgeAPI.updateRoundProgress(roundNum, {
+      placedPieces: piecesList,
+      budgetRemaining: remaining
+    }).catch(err => console.warn('[BuildController] DB sync error:', err.message));
   }
 
   // ---------------------------------------------------------------------------

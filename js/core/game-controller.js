@@ -114,6 +114,14 @@ class GameController {
       passed: true
     });
 
+    // Sync progress to backend database
+    if (typeof window !== 'undefined' && window.TechnoBridgeAPI) {
+      window.TechnoBridgeAPI.updateRoundProgress(this.currentRoundNumber, {
+        stagesPassed: stagesPassed || 5,
+        isCompleted: true
+      }).catch(err => console.warn('[GameController] Failed to sync progress to DB:', err.message));
+    }
+
     gameState.transitionTo(GAME_STATES.ROUND_SUMMARY || 'ROUND_SUMMARY');
 
     if (typeof this.roundSummaryCallback === 'function') {
@@ -138,6 +146,14 @@ class GameController {
       reason,
       message
     });
+
+    // Sync partial progress to backend database
+    if (typeof window !== 'undefined' && window.TechnoBridgeAPI) {
+      window.TechnoBridgeAPI.updateRoundProgress(this.currentRoundNumber, {
+        stagesPassed: stagesPassed || 0,
+        isCompleted: false
+      }).catch(err => console.warn('[GameController] Failed to sync progress to DB:', err.message));
+    }
 
     gameState.transitionTo(GAME_STATES.ROUND_SUMMARY || 'ROUND_SUMMARY');
 

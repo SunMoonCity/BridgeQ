@@ -5,10 +5,10 @@ export const MATERIALS = Object.freeze({
     key: 'steel',
     label: 'Steel',
     youngsModulus: 200e3,  // Elastic stiffness
-    tensileStrength: 120,   // Max tension stress limit
-    compressionStrength: 100,// Max compression stress limit
+    tensileStrength: 100,   // Max tension stress limit (~4% strain limit)
+    compressionStrength: 90,// Max compression stress limit
     density: 7.8,          // Density for mass calculation
-    costPerUnit: 15,       // Currency per unit length
+    costPerUnit: 750,       // Currency per unit length
     color: '#475569'
   },
   wood: {
@@ -18,27 +18,27 @@ export const MATERIALS = Object.freeze({
     tensileStrength: 45,
     compressionStrength: 35,
     density: 0.6,
-    costPerUnit: 6,
+    costPerUnit: 30,
     color: '#b45309'
   },
   concrete: {
     key: 'concrete',
     label: 'Concrete',
     youngsModulus: 150e3,
-    tensileStrength: 25,    // Weak in tension
+    tensileStrength: 25,    // Weak in tension (~1% strain)
     compressionStrength: 140,// Very strong in compression
     density: 2.4,
-    costPerUnit: 10,
+    costPerUnit: 500,
     color: '#94a3b8'
   },
   road: {
     key: 'road',
     label: 'Road Deck',
     youngsModulus: 180e3,
-    tensileStrength: 100,
-    compressionStrength: 110,
+    tensileStrength: 235,    // ~23.5% strain limit (holds when supported, snaps when unsupported)
+    compressionStrength: 140,
     density: 3.5,
-    costPerUnit: 20,
+    costPerUnit: 1000,
     color: '#1e293b'
   }
 });

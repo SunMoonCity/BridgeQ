@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Techno Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay">LOADING...</div>
+
+  <!-- Header -->
+  <header class="px-header">
+    <div class="px-header__left">
+      <div class="px-header__logo">⛩ Techno <span>Bridge</span></div>
+      <div class="px-header__badge">ADMIN</div>
+    </div>
+    <button class="px-btn px-btn--outline" id="logout-btn">[ LOGOUT ]</button>
+  </header>
+
+  <main class="px-main">
+
+    <!-- Page title row -->
+    <div class="px-title-row">
+      <div>
+        <div class="px-page-title">ADMIN PANEL</div>
+        <div class="px-page-subtitle">COMPETITION MANAGEMENT SYSTEM</div>
+      </div>
+      <div>
+        <button class="px-btn" id="open-create-btn">[ + CREATE STUDENT ]</button>
+        <button class="px-btn" id="open-create-mat-btn" style="display: none; background: #059669;">[ + CREATE MATERIAL ]</button>
+        <button class="px-btn" id="open-create-round-btn" style="display: none; background: #7c3aed;">[ + ADD ROUND ]</button>
+      </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="px-tabs">
+      <button class="px-tab-btn active" id="tab-students">[ 👨‍🎓 STUDENTS ]</button>
+      <button class="px-tab-btn" id="tab-materials">[ 🧱 MATERIAL CONFIG ]</button>
+      <button class="px-tab-btn" id="tab-rounds">[ 🏆 ROUND CONFIG ]</button>
+    </div>
+
+    <!-- Students panel -->
+    <div class="px-panel" id="panel-students">
+      <div class="px-panel__title">▸ Students</div>
+
+      <!-- Search controls -->
+      <div class="px-controls">
+        <div class="px-search">
+          <input type="text" id="search-input" placeholder="Search roll no, email, name...">
+          <button class="px-search__btn" id="search-btn">SEARCH</button>
+        </div>
+        <span id="total-count"></span>
+      </div>
+
+      <!-- Table -->
+      <div class="px-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Roll Number</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-tbody">
+            <tr><td colspan="7" class="px-table-msg">LOADING...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="px-pagination">
+        <button class="px-btn px-btn--sm px-btn--outline" id="prev-btn">◀ PREV</button>
+        <span id="page-info">Page 1</span>
+        <button class="px-btn px-btn--sm px-btn--outline" id="next-btn">NEXT ▶</button>
+      </div>
+    </div>
+
+    <!-- Materials panel (hidden by default) -->
+    <div class="px-panel" id="panel-materials" style="display: none;">
+      <div class="px-panel__title">▸ Material Configuration & Pricing</div>
+
+      <div class="px-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Key</th>
+              <th>Label</th>
+              <th>Price (₹/m)</th>
+              <th>Young's Modulus</th>
+              <th>Tensile Limit</th>
+              <th>Compression</th>
+              <th>Density</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="materials-tbody">
+            <tr><td colspan="9" class="px-table-msg">LOADING...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Rounds panel (hidden by default) -->
+    <div class="px-panel" id="panel-rounds" style="display: none;">
+      <div class="px-panel__title">▸ Competition Rounds Configuration</div>
+
+      <div class="px-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Round No</th>
+              <th>Round Name</th>
+              <th>Budget (₹)</th>
+              <th>Build Time</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rounds-tbody">
+            <tr><td colspan="7" class="px-table-msg">LOADING ROUNDS...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Create Student Modal -->
+  <div class="px-modal-backdrop" id="create-modal">
+    <div class="px-modal">
+      <div class="px-modal__header">
+        <div class="px-modal__title">▸ Create Student</div>
+        <button class="px-modal__close" id="close-modal-btn">&times;</button>
+      </div>
+
+      <div class="px-form-grid">
+        <div class="px-field">
+          <label for="f-rollno">Roll Number *</label>
+          <input type="text" id="f-rollno" placeholder="e.g. 24BCS0142" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="f-email">Email *</label>
+          <input type="email" id="f-email" placeholder="student@example.com" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="f-password">Password *</label>
+          <input type="password" id="f-password" placeholder="Min 6 characters" autocomplete="new-password">
+        </div>
+        <div class="px-field">
+          <label for="f-name">Name</label>
+          <input type="text" id="f-name" placeholder="Full name (optional)">
+        </div>
+        <div class="px-field">
+          <label for="f-dept">Department</label>
+          <input type="text" id="f-dept" placeholder="e.g. CSE (optional)">
+        </div>
+        <div class="px-field">
+          <label for="f-year">Year</label>
+          <select id="f-year">
+            <option value="">— Optional —</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+            <option value="5">5th Year</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="form-status"></div>
+
+      <div class="px-modal-actions">
+        <button class="px-btn" id="create-submit-btn">[ CREATE ]</button>
+        <button class="px-btn px-btn--outline" id="cancel-btn">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Material Modal -->
+  <div class="px-modal-backdrop" id="create-mat-modal">
+    <div class="px-modal">
+      <div class="px-modal__header">
+        <div class="px-modal__title">▸ Create Material Configuration</div>
+        <button class="px-modal__close" id="close-mat-modal-btn">&times;</button>
+      </div>
+
+      <div class="px-form-grid">
+        <div class="px-field">
+          <label for="fm-key">Material Key *</label>
+          <input type="text" id="fm-key" placeholder="e.g. carbon" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="fm-label">Label *</label>
+          <input type="text" id="fm-label" placeholder="e.g. Carbon Fiber" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="fm-price">Price (₹ per unit) *</label>
+          <input type="number" id="fm-price" placeholder="e.g. 25" min="0" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fm-youngs">Young's Modulus</label>
+          <input type="number" id="fm-youngs" placeholder="Default: 200000" step="1000">
+        </div>
+        <div class="px-field">
+          <label for="fm-tensile">Tensile Strength Limit</label>
+          <input type="number" id="fm-tensile" placeholder="Default: 100" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fm-comp">Compression Strength</label>
+          <input type="number" id="fm-comp" placeholder="Default: 90" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fm-density">Density</label>
+          <input type="number" id="fm-density" placeholder="Default: 7.8" step="0.1">
+        </div>
+        <div class="px-field">
+          <label for="fm-color">Color Code</label>
+          <input type="text" id="fm-color" placeholder="e.g. #10b981">
+        </div>
+      </div>
+
+      <div id="mat-form-status"></div>
+
+      <div class="px-modal-actions">
+        <button class="px-btn" id="create-mat-submit-btn" style="background: #059669;">[ CREATE MATERIAL ]</button>
+        <button class="px-btn px-btn--outline" id="cancel-mat-btn">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Material Modal -->
+  <div class="px-modal-backdrop" id="edit-mat-modal">
+    <div class="px-modal">
+      <div class="px-modal__header">
+        <div class="px-modal__title">▸ Edit Material Configuration</div>
+        <button class="px-modal__close" id="close-edit-mat-modal-btn">&times;</button>
+      </div>
+
+      <input type="hidden" id="fme-id">
+
+      <div class="px-form-grid">
+        <div class="px-field">
+          <label for="fme-key">Material Key (Read Only)</label>
+          <input type="text" id="fme-key" readonly style="opacity: 0.7; background: #e2e8f0;">
+        </div>
+        <div class="px-field">
+          <label for="fme-label">Label *</label>
+          <input type="text" id="fme-label" placeholder="e.g. Steel Deck" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="fme-price">Price (₹ per unit) *</label>
+          <input type="number" id="fme-price" placeholder="e.g. 18" min="0" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fme-youngs">Young's Modulus</label>
+          <input type="number" id="fme-youngs" placeholder="Young's Modulus" step="1000">
+        </div>
+        <div class="px-field">
+          <label for="fme-tensile">Tensile Strength Limit</label>
+          <input type="number" id="fme-tensile" placeholder="Tensile Limit" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fme-comp">Compression Strength</label>
+          <input type="number" id="fme-comp" placeholder="Compression Strength" step="1">
+        </div>
+        <div class="px-field">
+          <label for="fme-density">Density</label>
+          <input type="number" id="fme-density" placeholder="Density" step="0.1">
+        </div>
+        <div class="px-field">
+          <label for="fme-color">Color Code</label>
+          <input type="text" id="fme-color" placeholder="Hex color code">
+        </div>
+      </div>
+
+      <div id="edit-mat-form-status"></div>
+
+      <div class="px-modal-actions">
+        <button class="px-btn" id="edit-mat-submit-btn" style="background: #2563eb;">[ SAVE CHANGES ]</button>
+        <button class="px-btn px-btn--outline" id="cancel-edit-mat-btn">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Round Modal -->
+  <div class="px-modal-backdrop" id="create-round-modal">
+    <div class="px-modal">
+      <div class="px-modal__header">
+        <div class="px-modal__title" id="create-round-modal-title">▸ Add New Competition Round</div>
+        <button class="px-modal__close" id="close-round-modal-btn">&times;</button>
+      </div>
+
+      <div class="px-form-grid">
+        <div class="px-field">
+          <label for="fr-number">Round Number *</label>
+          <input type="number" id="fr-number" readonly style="opacity: 0.7; background: #e2e8f0;">
+        </div>
+        <div class="px-field">
+          <label for="fr-name">Round Name (Auto Generated) *</label>
+          <input type="text" id="fr-name" placeholder="e.g. Round 2 - Heavy Logistics" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="fr-budget">Total Budget (₹) *</label>
+          <input type="number" id="fr-budget" placeholder="e.g. 4000000" step="100000" value="4000000">
+        </div>
+        <div class="px-field">
+          <label for="fr-time">Build Time (Seconds) *</label>
+          <input type="number" id="fr-time" placeholder="e.g. 300" step="30" value="300">
+        </div>
+        <div class="px-field" style="grid-column: 1 / -1;">
+          <label for="fr-desc">Description</label>
+          <input type="text" id="fr-desc" placeholder="Brief description of the round objectives">
+        </div>
+      </div>
+
+      <div id="round-form-status"></div>
+
+      <div class="px-modal-actions">
+        <button class="px-btn" id="create-round-submit-btn" style="background: #7c3aed;">[ CREATE ROUND ]</button>
+        <button class="px-btn px-btn--outline" id="cancel-round-btn">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Round Modal -->
+  <div class="px-modal-backdrop" id="edit-round-modal">
+    <div class="px-modal">
+      <div class="px-modal__header">
+        <div class="px-modal__title">▸ Edit Competition Round</div>
+        <button class="px-modal__close" id="close-edit-round-modal-btn">&times;</button>
+      </div>
+
+      <input type="hidden" id="fre-id">
+
+      <div class="px-form-grid">
+        <div class="px-field">
+          <label for="fre-number">Round Number (Read Only)</label>
+          <input type="number" id="fre-number" readonly style="opacity: 0.7; background: #e2e8f0;">
+        </div>
+        <div class="px-field">
+          <label for="fre-name">Round Name *</label>
+          <input type="text" id="fre-name" placeholder="Round name" autocomplete="off">
+        </div>
+        <div class="px-field">
+          <label for="fre-budget">Total Budget (₹) *</label>
+          <input type="number" id="fre-budget" placeholder="Total Budget" step="100000">
+        </div>
+        <div class="px-field">
+          <label for="fre-time">Build Time (Seconds) *</label>
+          <input type="number" id="fre-time" placeholder="Build Time in Seconds" step="30">
+        </div>
+        <div class="px-field" style="grid-column: 1 / -1;">
+          <label for="fre-desc">Description</label>
+          <input type="text" id="fre-desc" placeholder="Round description">
+        </div>
+      </div>
+
+      <div id="edit-round-form-status"></div>
+
+      <div class="px-modal-actions">
+        <button class="px-btn" id="edit-round-submit-btn" style="background: #2563eb;">[ SAVE CHANGES ]</button>
+        <button class="px-btn px-btn--outline" id="cancel-edit-round-btn">[ CANCEL ]</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Game Details Modal -->
+  <div class="px-modal-backdrop" id="student-details-modal">
+    <div class="px-modal" style="width: min(92vw, 850px);">
+      <div class="px-modal__header">
+        <div class="px-modal__title" id="student-details-title">▸ Student Game Details</div>
+        <button class="px-modal__close" id="close-student-details-modal-btn">&times;</button>
+      </div>
+
+      <div id="student-details-content">
+        <div class="px-table-msg">LOADING STUDENT GAME DATA...</div>
+      </div>
+
+      <div class="px-modal-actions" style="margin-top: 24px;">
+        <button class="px-btn px-btn--outline" id="close-student-details-btn" style="width: 100%;">[ CLOSE ]</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../api.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

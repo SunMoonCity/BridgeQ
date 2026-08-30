@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enter the Game — Sunset Bridge Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<div id="scene">
+
+  <svg viewBox="0 0 570 456" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="sunGlow" cx="50%" cy="45%" r="60%">
+        <stop offset="0%" stop-color="#fff6d0" stop-opacity="0.95"/>
+        <stop offset="45%" stop-color="#fde9a8" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#fde9a8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- ===================== static background art ===================== -->
+    <circle cx="285" cy="230" r="230" fill="url(#sunGlow)"/>
+    <circle cx="285" cy="250" r="80" fill="#fff3c4" opacity="0.9"/>
+    <polygon points="140,300 220,180 300,300" fill="#c1522a" opacity="0.9"/>
+    <polygon points="260,300 340,190 430,300" fill="#b8481f" opacity="0.9"/>
+    <polygon points="255,300 285,220 320,300" fill="#f4c98a" opacity="0.85"/>
+    <polygon points="0,300 20,290 30,300 50,285 65,300 85,292 100,300 120,288 140,300
+                     160,296 180,300 200,290 215,300 230,294 250,300 270,296 290,300
+                     310,292 330,300 350,296 370,300 390,290 410,300 430,296 450,300
+                     470,292 490,300 510,296 530,300 550,290 570,300 570,320 0,320"
+             fill="#7a2c12"/>
+    <path d="M0,180 L0,456 L150,456 C130,420 120,380 115,340
+             C105,300 95,270 90,240 C85,210 70,195 55,190
+             C40,185 20,182 0,180 Z" fill="#3d160a"/>
+    <path d="M30,456 C40,400 55,340 60,300 C65,260 60,220 50,190"
+          stroke="#5c2410" stroke-width="4" fill="none" opacity="0.6"/>
+    <path d="M100,456 C95,410 100,360 95,320" stroke="#5c2410" stroke-width="3" fill="none" opacity="0.5"/>
+    <path d="M570,180 L570,456 L420,456 C440,420 450,380 455,340
+             C465,300 475,270 480,240 C485,210 500,195 515,190
+             C530,185 550,182 570,180 Z" fill="#3d160a"/>
+    <path d="M540,456 C530,400 515,340 510,300 C505,260 510,220 520,190"
+          stroke="#5c2410" stroke-width="4" fill="none" opacity="0.6"/>
+    <path d="M470,456 C475,410 470,360 475,320" stroke="#5c2410" stroke-width="3" fill="none" opacity="0.5"/>
+    <g fill="#2b0e05">
+      <polygon points="20,180 10,140 30,140 20,110 5,110 20,70 35,110 20,110 40,140 30,140 40,180"/>
+      <polygon points="60,200 50,165 68,165 58,140 45,140 58,105 72,140 60,140 78,165 68,165 78,200"/>
+    </g>
+    <g fill="#2b0e05">
+      <polygon points="545,180 535,140 555,140 545,110 530,110 545,70 560,110 545,110 565,140 555,140 565,180"/>
+      <polygon points="505,200 495,165 513,165 503,140 490,140 503,105 517,140 505,140 523,165 513,165 523,200"/>
+    </g>
+    <path d="M430,175 q8,-10 16,0 q8,-10 16,0" stroke="#3a1409" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- ===================== BRIDGE — split into collapsible pieces =====================
+         Same visual as the original single-piece bridge, just cut into 11 <g class="bridge-piece">
+         segments (left -> right) so a click can drop them starting at the center and rippling
+         outward. Geometry (arch points, strut x-positions, diagonals, railing posts) is copied
+         from the original hand-authored bridge so the look is unchanged. -->
+    <g id="bridge" fill="none">
+
+      <!-- piece 0: left flat approach (rests on the rock, no strut needed) -->
+      <g class="bridge-piece" data-index="0">
+        <rect x="30" y="192" width="40" height="12" fill="#2b0e05"/>
+        <line x1="50" y1="192" x2="50" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="30" y1="180" x2="70" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 1: pier -> first strut (70 to 90) -->
+      <g class="bridge-piece" data-index="1">
+        <rect x="70" y="192" width="20" height="12" fill="#2b0e05"/>
+        <path d="M70,300 L90,292" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="90" y1="204" x2="90" y2="292" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="70" y1="180" x2="90" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 2: 90 -> 140 -->
+      <g class="bridge-piece" data-index="2">
+        <rect x="90" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M90,292 L140,255" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="140" y1="204" x2="140" y2="255" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="90" y1="292" x2="140" y2="255" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="100" y1="192" x2="100" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="90" y1="180" x2="140" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 3: 140 -> 190 -->
+      <g class="bridge-piece" data-index="3">
+        <rect x="140" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M140,255 L190,222" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="190" y1="204" x2="190" y2="222" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="140" y1="255" x2="190" y2="222" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="150" y1="192" x2="150" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="140" y1="180" x2="190" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 4: 190 -> 240 -->
+      <g class="bridge-piece" data-index="4">
+        <rect x="190" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M190,222 L240,196" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="240" y1="204" x2="240" y2="196" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="190" y1="222" x2="240" y2="196" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="200" y1="192" x2="200" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="190" y1="180" x2="240" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 5: CENTER — the apex, 240 -> 330 (no struts needed, arch nearly meets deck) -->
+      <g class="bridge-piece" data-index="5">
+        <rect x="240" y="192" width="90" height="12" fill="#2b0e05"/>
+        <path d="M240,196 Q285,168 330,196" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="250" y1="192" x2="250" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="320" y1="192" x2="320" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="240" y1="180" x2="330" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 6: 330 -> 380 (mirror of piece 4) -->
+      <g class="bridge-piece" data-index="6">
+        <rect x="330" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M330,196 L380,222" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="380" y1="204" x2="380" y2="222" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="330" y1="196" x2="380" y2="222" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="370" y1="192" x2="370" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="330" y1="180" x2="380" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 7: 380 -> 430 (mirror of piece 3) -->
+      <g class="bridge-piece" data-index="7">
+        <rect x="380" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M380,222 L430,255" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="430" y1="204" x2="430" y2="255" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="380" y1="222" x2="430" y2="255" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="420" y1="192" x2="420" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="380" y1="180" x2="430" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 8: 430 -> 480 (mirror of piece 2) -->
+      <g class="bridge-piece" data-index="8">
+        <rect x="430" y="192" width="50" height="12" fill="#2b0e05"/>
+        <path d="M430,255 L480,292" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="480" y1="204" x2="480" y2="292" stroke="#2b0e05" stroke-width="5"/>
+        <line x1="430" y1="255" x2="480" y2="292" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="470" y1="192" x2="470" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="430" y1="180" x2="480" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 9: last strut -> pier (480 to 500), mirror of piece 1 -->
+      <g class="bridge-piece" data-index="9">
+        <rect x="480" y="192" width="20" height="12" fill="#2b0e05"/>
+        <path d="M480,292 L500,300" stroke="#3a1409" stroke-width="14" stroke-linecap="round"/>
+        <line x1="480" y1="180" x2="500" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+      <!-- piece 10: right flat approach (mirror of piece 0) -->
+      <g class="bridge-piece" data-index="10">
+        <rect x="500" y="192" width="40" height="12" fill="#2b0e05"/>
+        <line x1="520" y1="192" x2="520" y2="180" stroke="#2b0e05" stroke-width="3"/>
+        <line x1="500" y1="180" x2="540" y2="180" stroke="#2b0e05" stroke-width="3"/>
+      </g>
+
+    </g>
+  </svg>
+
+  <!-- particles get injected here by JS -->
+  <div id="particle-layer"></div>
+
+  <!-- ============================================================
+       LOGIN TABLET
+       ============================================================ -->
+  <div id="tablet-wrap">
+    <form id="tablet" autocomplete="off">
+      <h1>⛩ Enter the Game ⛩</h1>
+      <p class="subtitle">The bridge awaits your passage</p>
+
+      <div class="field">
+        <label for="rollno">Roll No</label>
+        <input id="rollno" name="rollno" type="text" placeholder="e.g. 24BCS0142" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" placeholder="••••••••" required />
+      </div>
+
+      <button type="submit" id="enter-btn">Enter the Game</button>
+      <div id="status-msg"></div>
+      <p style="margin-top: 14px; font-size: 0.78rem; color: #f0d9a8;">
+        <a href="#" id="mode-toggle" style="color: #ffd76a; text-decoration: underline;">New here? Create an account</a>
+      </p>
+    </form>
+  </div>
+
+  <div id="black-overlay"></div>
+</div>
+
+<script src="../api.js"></script>
+<script src="login.js"></script>
+
+</body>
+</html>

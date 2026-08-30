@@ -18,7 +18,7 @@ export class Vehicle {
     this.targetSpeed = config.speed || 25;
     this.wheelBase = config.wheelBase || 10;
     this.halfWheelBase = this.wheelBase / 2;
-    this.fallThresholdY = config.fallThresholdY !== undefined ? config.fallThresholdY : 500;
+    this.fallThresholdY = config.fallThresholdY !== undefined ? config.fallThresholdY : 200;
     this.endX = config.endX !== undefined ? config.endX : 400;
     this.color = config.color || '#2563eb';
 

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — Techno Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay">LOADING...</div>
+
+  <!-- Header -->
+  <header class="px-header">
+    <div class="px-header__logo">⛩ Techno <span>Bridge</span></div>
+    <button class="px-btn px-btn--outline" id="logout-btn">[ LOGOUT ]</button>
+  </header>
+
+  <main class="px-main">
+
+    <!-- Welcome banner -->
+    <div class="px-welcome">
+      <h1>▶ WELCOME BACK</h1>
+      <p id="welcome-sub">Loading student data...</p>
+    </div>
+
+    <!-- Student info -->
+    <div class="px-panel">
+      <div class="px-panel__title">▸ Student Profile</div>
+      <div class="px-info-grid">
+        <div class="px-info-card">
+          <div class="px-info-card__label">Roll Number</div>
+          <div class="px-info-card__value" id="info-rollno">—</div>
+        </div>
+        <div class="px-info-card">
+          <div class="px-info-card__label">Email</div>
+          <div class="px-info-card__value" id="info-email">—</div>
+        </div>
+        <div class="px-info-card">
+          <div class="px-info-card__label">Role</div>
+          <div class="px-info-card__value" id="info-role">—</div>
+        </div>
+        <div class="px-info-card">
+          <div class="px-info-card__label">Member Since</div>
+          <div class="px-info-card__value" id="info-since">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game rounds -->
+    <div class="px-panel">
+      <div class="px-panel__title">▸ Choose Your Round</div>
+      <div class="px-rounds">
+        <button class="px-round-card" id="btn-lobby">
+          <span class="px-round-card__num">⛩</span>
+          <span>
+            <span class="px-round-card__title">GAME LOBBY</span>
+            <span class="px-round-card__sub">Select round &amp; enter the game</span>
+          </span>
+        </button>
+        <button class="px-round-card" id="btn-round1">
+          <span class="px-round-card__num">1</span>
+          <span>
+            <span class="px-round-card__title">ROUND 1</span>
+            <span class="px-round-card__sub">Light loads, gentle testing</span>
+          </span>
+        </button>
+        <button class="px-round-card" id="btn-round2">
+          <span class="px-round-card__num">2</span>
+          <span>
+            <span class="px-round-card__title">ROUND 2</span>
+            <span class="px-round-card__sub">Heavier vehicles, tighter budget</span>
+          </span>
+        </button>
+      </div>
+      <button class="px-round-practice" id="btn-practice">
+        🛠 PRACTICE MODE
+      </button>
+    </div>
+
+  </main>
+
+  <script src="../api.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

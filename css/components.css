@@ -18,7 +18,9 @@
   background-color: var(--accent-primary);
   color: #ffffff;
 }
-
+.hud-timer{
+  display:none;
+}
 .btn-primary:hover:not(:disabled) {
   background-color: var(--accent-hover);
 }
@@ -201,6 +203,11 @@
 
 .modal-footer .btn {
   flex: 1;
+}
+
+.retry{
+  width:0px;
+  height:0px;
 }
 
 @keyframes fadeIn {

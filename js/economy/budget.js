@@ -26,6 +26,10 @@ class BudgetManager {
     return Math.max(0, this.totalBudget - this.spent);
   }
 
+  getRemainingBudget() {
+    return this.getRemaining();
+  }
+
   getTotalBudget() {
     return this.totalBudget;
   }

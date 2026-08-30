@@ -45,12 +45,12 @@ export class BridgeRenderer {
     this.viewport.resize(this.canvas.width, this.canvas.height);
 
     const bounds = {
-      xMin: this.roundConfig.ground.xMin,
-      xMax: this.roundConfig.ground.xMax,
-      yMin: this.roundConfig.ground.y,
-      yMax: Math.max(...this.roundConfig.cliffs.map(c => c.y)) + 150
+      xMin: -150,
+      xMax: 750,
+      yMin: -20,
+      yMax: Math.max(...this.roundConfig.cliffs.map(c => c.y)) + 160
     };
-    this.viewport.fitBounds(bounds, 0.12);
+    this.viewport.fitBounds(bounds, 0.08);
   }
 
   /**
@@ -101,7 +101,7 @@ export class BridgeRenderer {
     const maxY = Math.ceil(topLeftWorld.y / 50) * 50;
 
     // Minor grid lines (every 25 units)
-    ctx.strokeStyle = 'rgba(226, 232, 240, 0.7)';
+    ctx.strokeStyle = 'rgba(226, 232, 240, 0.6)';
     ctx.lineWidth = 1;
 
     for (let wx = minX; wx <= maxX; wx += 25) {
@@ -120,10 +120,9 @@ export class BridgeRenderer {
     }
 
     // Major grid lines & labels (every 50 units)
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
     ctx.lineWidth = 1.5;
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px monospace';
+    ctx.font = '500 11px Inter, sans-serif';
 
     for (let wx = minX; wx <= maxX; wx += 50) {
       const s = vp.worldToScreen(wx, 0);
@@ -132,8 +131,9 @@ export class BridgeRenderer {
       ctx.lineTo(s.x, h);
       ctx.stroke();
 
-      if (s.x > 30 && s.x < w - 30) {
-        ctx.fillText(`${wx}`, s.x + 3, h - 6);
+      if (s.x > 20 && s.x < w - 20) {
+        ctx.fillStyle = '#475569';
+        ctx.fillText(`${wx}`, s.x - 12, h - 8);
       }
     }
 
@@ -144,8 +144,9 @@ export class BridgeRenderer {
       ctx.lineTo(w, s.y);
       ctx.stroke();
 
-      if (s.y > 20 && s.y < h - 20) {
-        ctx.fillText(`${wy}`, 8, s.y - 4);
+      if (s.y > 20 && s.y < h - 25) {
+        ctx.fillStyle = '#475569';
+        ctx.fillText(`${wy}`, 8, s.y + 4);
       }
     }
   }
@@ -161,57 +162,95 @@ export class BridgeRenderer {
     const groundScreen = vp.worldToScreen(ground.xMin, ground.y);
     const groundRightScreen = vp.worldToScreen(ground.xMax, ground.y);
 
-    // Ground Strip
-    ctx.fillStyle = '#78350f';
+    // Ground Riverbed / Floor
+    const groundHeight = this.canvas.height - groundScreen.y;
+    const groundGrad = ctx.createLinearGradient(0, groundScreen.y, 0, this.canvas.height);
+    groundGrad.addColorStop(0, '#5c2d12');
+    groundGrad.addColorStop(0.2, '#431d0a');
+    groundGrad.addColorStop(1, '#271005');
+
+    ctx.fillStyle = groundGrad;
     ctx.fillRect(
       groundScreen.x,
       groundScreen.y,
       groundRightScreen.x - groundScreen.x,
-      this.canvas.height - groundScreen.y
-    );
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(
-      groundScreen.x,
-      groundScreen.y,
-      groundRightScreen.x - groundScreen.x,
-      6
+      groundHeight
     );
 
-    // Cliffs
+    // Lush Riverbed Grass
+    const riverGrassGrad = ctx.createLinearGradient(0, groundScreen.y, 0, groundScreen.y + 8);
+    riverGrassGrad.addColorStop(0, '#10b981');
+    riverGrassGrad.addColorStop(1, '#047857');
+    ctx.fillStyle = riverGrassGrad;
+    ctx.fillRect(
+      groundScreen.x,
+      groundScreen.y,
+      groundRightScreen.x - groundScreen.x,
+      8
+    );
+
+    // Left & Right Cliffs
     const leftCliff = cliffs[0];
     const rightCliff = cliffs[1];
 
-    const cliffWidth = 250; // Visual cliff thickness
-
-    // Left Cliff (with opacity transition if building active per wireframe)
     ctx.save();
     if (this.isBuildingActive) {
-      ctx.globalAlpha = 0.55; // Wireframe specification: left cliff opacity decrease during construction
+      ctx.globalAlpha = 0.65;
     }
 
     const lcTop = vp.worldToScreen(leftCliff.x, leftCliff.y);
-    const lcBottom = vp.worldToScreen(leftCliff.x - cliffWidth, ground.y);
 
-    // Left Cliff body
-    ctx.fillStyle = '#78350f';
+    // Left Cliff Body Gradient
+    const lcGrad = ctx.createLinearGradient(0, lcTop.y, 0, this.canvas.height);
+    lcGrad.addColorStop(0, '#5c2d12');
+    lcGrad.addColorStop(0.3, '#431d0a');
+    lcGrad.addColorStop(1, '#1c0a02');
+
+    ctx.fillStyle = lcGrad;
     ctx.fillRect(0, lcTop.y, lcTop.x, this.canvas.height - lcTop.y);
-    // Grass top
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(0, lcTop.y, lcTop.x, 8);
+
+    // Left Cliff Top Grass
+    const lcGrassGrad = ctx.createLinearGradient(0, lcTop.y, 0, lcTop.y + 10);
+    lcGrassGrad.addColorStop(0, '#10b981');
+    lcGrassGrad.addColorStop(1, '#059669');
+    ctx.fillStyle = lcGrassGrad;
+    ctx.fillRect(0, lcTop.y, lcTop.x, 10);
+    ctx.fillStyle = '#34d399';
+    ctx.fillRect(0, lcTop.y, lcTop.x, 2);
 
     ctx.restore();
 
-    // Right Cliff body
+    // Right Cliff Body Gradient
     const rcTop = vp.worldToScreen(rightCliff.x, rightCliff.y);
-    ctx.fillStyle = '#78350f';
-    ctx.fillRect(rcTop.x, rcTop.y, this.canvas.width - rcTop.x, this.canvas.height - rcTop.y);
-    // Grass top
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(rcTop.x, rcTop.y, this.canvas.width - rcTop.x, 8);
 
-    // Fixed Anchor Points (Red circular anchors)
+    const rcGrad = ctx.createLinearGradient(0, rcTop.y, 0, this.canvas.height);
+    rcGrad.addColorStop(0, '#5c2d12');
+    rcGrad.addColorStop(0.3, '#431d0a');
+    rcGrad.addColorStop(1, '#1c0a02');
+
+    ctx.fillStyle = rcGrad;
+    ctx.fillRect(rcTop.x, rcTop.y, this.canvas.width - rcTop.x, this.canvas.height - rcTop.y);
+
+    // Right Cliff Top Grass
+    const rcGrassGrad = ctx.createLinearGradient(0, rcTop.y, 0, rcTop.y + 10);
+    rcGrassGrad.addColorStop(0, '#10b981');
+    rcGrassGrad.addColorStop(1, '#059669');
+    ctx.fillStyle = rcGrassGrad;
+    ctx.fillRect(rcTop.x, rcTop.y, this.canvas.width - rcTop.x, 10);
+    ctx.fillStyle = '#34d399';
+    ctx.fillRect(rcTop.x, rcTop.y, this.canvas.width - rcTop.x, 2);
+
+    // Fixed Anchor Pins (Red circular metallic anchors)
     for (const cliff of cliffs) {
       const anchorPos = vp.worldToScreen(cliff.x, cliff.y);
+
+      // Outer Glow Shadow Ring
+      ctx.beginPath();
+      ctx.arc(anchorPos.x, anchorPos.y, 11, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(220, 38, 38, 0.25)';
+      ctx.fill();
+
+      // Outer Crimson Ring
       ctx.beginPath();
       ctx.arc(anchorPos.x, anchorPos.y, 8, 0, Math.PI * 2);
       ctx.fillStyle = '#dc2626';
@@ -220,7 +259,7 @@ export class BridgeRenderer {
       ctx.strokeStyle = '#ffffff';
       ctx.stroke();
 
-      // Center silver pin
+      // Center Silver/White Metallic Pin
       ctx.beginPath();
       ctx.arc(anchorPos.x, anchorPos.y, 3, 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';

@@ -20,12 +20,31 @@ import { PhysicsBridgeBuilder } from './physics/physics-bridge-builder.js';
 import { PhysicsSimulation } from './physics/physics-simulation.js';
 import { LoadTestRunner } from './physics/load-test-runner.js';
 
+import { PieceManager } from './builder/piece-manager.js';
+
 let renderer = null;
 let graph = null;
 let buildController = null;
+const savedRoundProgressMap = new Map();
 
-function initApp() {
+async function initApp() {
   console.log('[Technothlon Bridge Game] Initializing Application...');
+
+  // 1. Authentication Guard: verify token with backend
+  if (window.TechnoBridgeAPI) {
+    try {
+      const authData = await window.TechnoBridgeAPI.me();
+      if (!authData || !authData.user) {
+        window.location.href = 'frontend/login.html';
+        return;
+      }
+      console.log('[Main] Authenticated student:', authData.user.rollNo);
+    } catch (_) {
+      console.warn('[Main] Unauthenticated access. Redirecting to login page...');
+      window.location.href = 'frontend/login.html';
+      return;
+    }
+  }
 
   const canvas = document.getElementById('gameCanvas');
   graph = new LogicalGraph();
@@ -39,42 +58,123 @@ function initApp() {
   resultModal.init();
   stageSelectManager.init();
 
-  // Load Round 1 config
-  const round1 = getRoundConfig(1);
-  if (round1) {
-    graph.initEnvironment(round1.cliffs);
-    renderer.setRound(round1);
-    budgetManager.init(round1.budget);
-    timer.init(round1.buildTimeSeconds);
-    gameState.setRound(1, round1);
+  // 2. Restore stage unlocks & round state from backend database
+  let defaultActiveRound = 1;
+  if (window.TechnoBridgeAPI) {
+    try {
+      const res = await window.TechnoBridgeAPI.getRoundProgress();
+      if (res && res.success && Array.isArray(res.data)) {
+        res.data.forEach(rec => {
+          savedRoundProgressMap.set(rec.roundNumber, rec);
+          if (rec.isUnlocked) {
+            stageSelectManager.unlockStage(rec.roundNumber);
+            if (!rec.isCompleted) {
+              defaultActiveRound = rec.roundNumber;
+            }
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('[Main] DB progress fetch error:', err.message);
+    }
   }
 
-  // Build Controller (Phase 7) — wires all construction card inputs
+  // Parse URL query parameter (e.g. ?round=round1 or ?round=round2 or ?round=2)
+  const urlParams = new URLSearchParams(window.location.search);
+  const rawRoundParam = urlParams.get('round');
+  let requestedRoundNum = null;
+  if (rawRoundParam) {
+    requestedRoundNum = parseInt(rawRoundParam.replace(/\D/g, ''), 10);
+  }
+
+  let targetRound = requestedRoundNum || parseInt(sessionStorage.getItem('activeRound'), 10) || defaultActiveRound || 1;
+
+  // URL Parameter Verification & Security Guard
+  const targetRec = savedRoundProgressMap.get(targetRound);
+  if (targetRec) {
+    if (!targetRec.isUnlocked) {
+      toast.show(`Round ${targetRound} is locked! Redirecting to active round...`, 'warning');
+      targetRound = defaultActiveRound;
+    } else if (targetRec.isCompleted) {
+      const nextUnlocked = Array.from(savedRoundProgressMap.values()).find(r => r.isUnlocked && !r.isCompleted);
+      if (nextUnlocked) {
+        toast.show(`Round ${targetRound} is already completed! Loading Round ${nextUnlocked.roundNumber}...`, 'info');
+        targetRound = nextUnlocked.roundNumber;
+      }
+    }
+  }
+
+  sessionStorage.setItem('activeRound', targetRound);
+
+  let activeLoadRunner = null;
+  let activeSimulation = null;
+
+  // Build Controller — wires all construction card inputs
   buildController = new BuildController({
     graph,
     budgetManager,
     renderer,
-    roundConfig: round1,
+    roundConfig: getRoundConfig(targetRound),
     character
   });
   buildController.init();
 
-  // GameController binding (Phase 15)
+  // GameController binding — ensures renderer and graph are attached before loading round
   gameController.bindDependencies({
     graph,
     renderer,
     buildController
   });
 
+  // Helper function to load round environment and restore bridge pieces & stats from DB
+  function loadAndRestoreRound(roundNum) {
+    activeLoadRunner = null;
+    activeSimulation = null;
+    if (renderer) renderer.setSimulationState(null, null, []);
+    stageSelectManager.hide();
+    gameController.loadRound(roundNum);
+
+    const rec = savedRoundProgressMap.get(roundNum);
+    if (rec) {
+      if (rec.timeRemaining !== undefined && rec.timeRemaining > 0) {
+        timer.remainingSeconds = rec.timeRemaining;
+        eventBus.emit(EVENTS.TIMER_TICK, timer.remainingSeconds);
+      }
+
+      if (Array.isArray(rec.placedPieces) && rec.placedPieces.length > 0) {
+        const rConfig = gameState.activeRoundConfig || getRoundConfig(roundNum);
+        if (rConfig && budgetManager) budgetManager.init(rConfig.budget);
+
+        rec.placedPieces.forEach(p => {
+          PieceManager.addPieceTransaction(graph, budgetManager, gameState.activeRoundConfig, {
+            equation: p.equation,
+            orientation: p.orientation || 'y-of-x',
+            rangeMin: p.rangeMin !== undefined ? p.rangeMin : 0,
+            rangeMax: p.rangeMax !== undefined ? p.rangeMax : 600,
+            material: p.material || 'steel',
+            isRoad: p.isRoad || p.material === 'road',
+            skipBudgetCheck: true
+          });
+        });
+      }
+
+      if (rec.budgetRemaining !== undefined && budgetManager) {
+        budgetManager.remainingBudget = rec.budgetRemaining;
+      }
+    }
+
+    if (renderer) renderer.render();
+    toast.show(`Stage ${roundNum} Loaded! Click left cliff to build.`, 'info');
+  }
+
+  // Load target round directly on app init (ensures cliffs and environment are drawn on renderer)
+  loadAndRestoreRound(targetRound);
+
   // Wire Stage Selection (Phase 18) -> hides Stage Overlay and loads selected round
   eventBus.on(EVENTS.STAGE_SELECTED || 'STAGE_SELECTED', ({ roundNumber }) => {
-    stageSelectManager.hide();
-    gameController.loadRound(roundNumber);
-    toast.show(`Stage ${roundNumber} Loaded! Click left cliff to build.`, 'info');
+    sessionStorage.setItem('activeRound', roundNumber);
+    loadAndRestoreRound(roundNumber);
   });
-
-  let activeLoadRunner = null;
-  let activeSimulation = null;
 
   // Listen for TEST_STARTED -> convert graph to physics, initialize simulation & load runner
   eventBus.on(EVENTS.TEST_STARTED, ({ graph, summary }) => {
@@ -87,12 +187,12 @@ function initApp() {
     activeSimulation = new PhysicsSimulation(physicsWorld);
     
     // 3. Instantiate LoadTestRunner
-    const roundConfig = gameController.activeRoundConfig || getRoundConfig(gameController.currentRoundNumber || 1);
+    const roundConfig = gameState.activeRoundConfig || getRoundConfig(gameController.currentRoundNumber || 1);
     activeLoadRunner = new LoadTestRunner(activeSimulation, roundConfig);
 
     // Update renderer continuously during simulation
     activeLoadRunner.onProgress = ({ vehicles }) => {
-      if (renderer) {
+      if (renderer && activeSimulation) {
         renderer.setSimulationState(
           activeSimulation.getNodePositions(),
           activeSimulation.getEdgeStressMap(),

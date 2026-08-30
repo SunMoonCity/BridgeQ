@@ -137,6 +137,17 @@ export class StageSelectManager {
   }
 
   /**
+   * Dynamically mark a stage as unlocked (called during DB progress restoration)
+   * @param {number} roundNumber
+   */
+  unlockStage(roundNumber) {
+    if (roundNumber > 1) {
+      this.completedRounds.add(roundNumber - 1);
+      this.renderStages();
+    }
+  }
+
+  /**
    * Enable/disable development mode (unlocks all stages for debugging if true)
    */
   setDevMode(enabled) {

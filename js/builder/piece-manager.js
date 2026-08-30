@@ -21,7 +21,8 @@ export class PieceManager {
     rangeMin,
     rangeMax,
     material = 'steel',
-    isRoad = false
+    isRoad = false,
+    skipBudgetCheck = false
   }) {
     // 1. Validate Material
     if (!isValidMaterial(material)) {
@@ -60,8 +61,8 @@ export class PieceManager {
       return { success: false, error: 'Calculated piece cost is zero or invalid.' };
     }
 
-    // 6. Check Budget Affordability
-    if (!budgetManager.canAfford(costCalc.cost)) {
+    // 6. Check Budget Affordability (bypassed if restoring saved DB pieces on refresh)
+    if (!skipBudgetCheck && !budgetManager.canAfford(costCalc.cost)) {
       return {
         success: false,
         error: `Insufficient budget: piece costs ₹${costCalc.cost.toFixed(0)}, but only ₹${budgetManager.getRemaining().toFixed(0)} remains.`,

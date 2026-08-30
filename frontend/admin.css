@@ -1,0 +1,445 @@
+/* ============================================================
+   admin.css — Pure Light Mode White Pixel Admin Panel
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #0f172a;
+  background: #f8fafc;
+  image-rendering: pixelated;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.06) 0%, transparent 50%),
+    repeating-linear-gradient(90deg, rgba(30,41,59,0.04) 0px, rgba(30,41,59,0.04) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(0deg,  rgba(30,41,59,0.04) 0px, rgba(30,41,59,0.04) 1px, transparent 1px, transparent 60px),
+    #f8fafc;
+}
+
+/* Pixel Grid Overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.4) 0px,
+    rgba(255,255,255,0.4) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.px-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  border-bottom: 4px solid #1e293b;
+  background: #ffffff;
+  box-shadow: 0 4px 0px #e2e8f0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.px-header__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.px-header__logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: #0f172a;
+  text-shadow: 2px 2px 0px #bae6fd;
+  text-transform: uppercase;
+}
+
+.px-header__logo span { color: #2563eb; }
+
+.px-header__badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  padding: 4px 8px;
+  border: 2px solid #1e293b;
+  background: #dbeafe;
+  color: #1e40af;
+  text-transform: uppercase;
+}
+
+/* ── Pixel Buttons ────────────────────────────────────────── */
+.px-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #2563eb;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #1e293b;
+  transition: transform 0.08s steps(2), box-shadow 0.08s steps(2);
+}
+
+.px-btn:hover  { background: #1d4ed8; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #1e293b; }
+.px-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #1e293b; }
+.px-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.px-btn--sm { padding: 6px 12px; font-size: 0.58rem; }
+
+.px-btn--danger {
+  background: #dc2626;
+  color: #ffffff;
+  box-shadow: 4px 4px 0px #991b1b;
+}
+.px-btn--danger:hover { background: #b91c1c; box-shadow: 6px 6px 0px #991b1b; }
+
+.px-btn--outline {
+  background: #ffffff;
+  color: #1e293b;
+  border: 3px solid #1e293b;
+  box-shadow: 4px 4px 0px #cbd5e1;
+}
+.px-btn--outline:hover { background: #f1f5f9; }
+
+/* ── Main Layout ──────────────────────────────────────────── */
+.px-main {
+  width: 100%;
+  max-width: 100%;
+  margin: 24px 0;
+  padding: 0 28px 60px;
+}
+
+/* ── Title Row ────────────────────────────────────────────── */
+.px-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.px-page-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  color: #0f172a;
+  text-shadow: 2px 2px 0px #e2e8f0;
+}
+
+.px-page-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: 1.2rem;
+  color: #64748b;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* ── Admin Tabs ───────────────────────────────────────────── */
+.px-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.px-tab-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  padding: 10px 18px;
+  background: #ffffff;
+  color: #475569;
+  border: 3px solid #1e293b;
+  box-shadow: 4px 4px 0px #cbd5e1;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
+
+.px-tab-btn:hover { background: #f1f5f9; color: #0f172a; }
+.px-tab-btn.active {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 4px 4px 0px #1e293b;
+}
+
+/* ── Pixel Panel ──────────────────────────────────────────── */
+.px-panel {
+  background: #ffffff;
+  border: 4px solid #1e293b;
+  border-radius: 0px;
+  box-shadow: 8px 8px 0px #cbd5e1;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+.px-panel__title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #0f172a;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* ── Form Inputs ──────────────────────────────────────────── */
+.px-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.px-field label {
+  display: block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.px-field input,
+.px-field select {
+  width: 100%;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  color: #0f172a;
+  font-family: 'VT323', monospace;
+  font-size: 1.3rem;
+  outline: none;
+  box-shadow: inset 3px 3px 0px #e2e8f0;
+}
+
+.px-field input:focus,
+.px-field select:focus { border-color: #2563eb; background: #ffffff; }
+
+.px-field input::placeholder { color: #94a3b8; }
+.px-field select option { background: #ffffff; }
+
+#form-status {
+  min-height: 20px;
+  font-family: 'VT323', monospace;
+  font-size: 1.2rem;
+  margin-top: 10px;
+  letter-spacing: 1px;
+}
+
+.status--ok  { color: #16a34a; }
+.status--err { color: #dc2626; }
+
+.px-modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.px-modal-actions .px-btn { flex: 1; }
+
+/* ── Controls Bar ─────────────────────────────────────────── */
+.px-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.px-search {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+}
+
+.px-search input {
+  flex: 1;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 3px solid #1e293b;
+  border-right: none;
+  border-radius: 0px;
+  color: #0f172a;
+  font-family: 'VT323', monospace;
+  font-size: 1.3rem;
+  outline: none;
+}
+
+.px-search input:focus { border-color: #2563eb; background: #ffffff; }
+.px-search input::placeholder { color: #94a3b8; }
+
+.px-search__btn {
+  padding: 10px 16px;
+  background: #2563eb;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow: 3px 3px 0px #1e293b;
+}
+
+.px-search__btn:hover { background: #1d4ed8; }
+
+#total-count {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+/* ── Table ────────────────────────────────────────────────── */
+.px-table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'VT323', monospace;
+  font-size: 1.3rem;
+}
+
+thead tr {
+  background: #f1f5f9;
+  border-bottom: 3px solid #1e293b;
+}
+
+th {
+  padding: 10px 14px;
+  text-align: left;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 2px solid #e2e8f0;
+}
+
+tbody tr:hover { background: #f8fafc; }
+
+td {
+  padding: 10px 14px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+td.td--roll           { color: #0f172a; font-weight: bold; }
+td.td--role-admin     { color: #2563eb; font-weight: bold; }
+td.td--role-student   { color: #16a34a; }
+
+.px-table-msg {
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+/* ── Pagination ───────────────────────────────────────────── */
+.px-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 22px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+}
+
+#page-info { color: #64748b; }
+
+/* ── Loading Overlay ──────────────────────────────────────── */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #1e293b;
+}
+
+/* ── Modal ────────────────────────────────────────────────── */
+.px-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.6);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.px-modal-backdrop.open { display: flex; }
+
+.px-modal {
+  background: #ffffff;
+  border: 4px solid #1e293b;
+  border-radius: 0px;
+  box-shadow: 10px 10px 0px #1e293b;
+  padding: 28px 32px;
+  width: min(90vw, 560px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.px-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.px-modal__title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.px-modal__close {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.px-modal__close:hover { color: #0f172a; }
+
+@media (max-width: 600px) {
+  .px-header  { padding: 10px 14px; }
+  .px-main    { margin-top: 20px; padding: 0 12px 40px; }
+  .px-panel   { padding: 18px 14px; }
+  .px-page-title { font-size: 0.85rem; }
+}

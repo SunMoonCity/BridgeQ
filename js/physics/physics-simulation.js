@@ -65,16 +65,18 @@ export class PhysicsSimulation {
         // Integrate new position: x_new = x + v + a * dt^2
         node.x += vx + ax * subDtSq;
         node.y += vy + ay * subDtSq;
-
-        // Reset forces for next sub-step
-        node.forceX = 0;
-        node.forceY = 0;
       }
 
       // 2. Solve structural constraints iteratively (Position-Based Dynamics)
       for (const constraint of this.world.constraints.values()) {
         constraint.solve(0.0);
       }
+    }
+
+    // Reset external applied forces at end of step frame
+    for (const node of this.world.nodes.values()) {
+      node.forceX = 0;
+      node.forceY = 0;
     }
 
     // 3. Update simulation time and tick count
@@ -161,5 +163,19 @@ export class PhysicsSimulation {
     if (nearest) {
       nearest.applyForce(fx, fy);
     }
+  }
+
+  /**
+   * Get current node positions map from underlying physics world
+   */
+  getNodePositions() {
+    return this.world ? this.world.getNodePositions() : new Map();
+  }
+
+  /**
+   * Get current edge stress map from underlying physics world
+   */
+  getEdgeStressMap() {
+    return this.world ? this.world.getEdgeStressMap() : new Map();
   }
 }

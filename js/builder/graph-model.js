@@ -31,6 +31,7 @@ export class LogicalEdge {
     this.vertexAId = vertexAId;
     this.vertexBId = vertexBId;
     this.pieceId = pieceId;
+    this.connectedPieceIds = new Set(pieceId !== null && pieceId !== undefined ? [pieceId] : []);
     this.material = material;
     this.isRoad = isRoad;
     this.restLength = restLength;
@@ -42,6 +43,7 @@ export class LogicalEdge {
       vertexAId: this.vertexAId,
       vertexBId: this.vertexBId,
       pieceId: this.pieceId,
+      connectedPieceIds: Array.from(this.connectedPieceIds),
       material: this.material,
       isRoad: this.isRoad,
       restLength: this.restLength
@@ -175,6 +177,7 @@ export class LogicalGraph {
       const edge = this.edges.get(edgeId);
       if (edge && ((edge.vertexAId === vertexBId) || (edge.vertexBId === vertexBId))) {
         // Edge already connects these vertices
+        edge.connectedPieceIds.add(pieceId);
         vA.connectedPieceIds.add(pieceId);
         vB.connectedPieceIds.add(pieceId);
         return edge;
@@ -278,8 +281,10 @@ export class LogicalGraph {
       const edge = this.edges.get(edgeId);
       if (!edge) continue;
 
-      // If edge belonged specifically to this piece, remove it
-      if (edge.pieceId === pieceId) {
+      edge.connectedPieceIds.delete(pieceId);
+
+      // Only delete edge if no other piece references it
+      if (edge.connectedPieceIds.size === 0) {
         this.edges.delete(edgeId);
 
         const vA = this.canonicalVertices.get(edge.vertexAId);
@@ -296,11 +301,13 @@ export class LogicalGraph {
 
       v.connectedPieceIds.delete(pieceId);
 
-      // If non-fixed vertex has no remaining edges/pieces, delete it
-      if (!v.isFixed && v.connectedEdgeIds.size === 0) {
+      // If non-fixed vertex has no remaining edges AND no remaining pieces, delete it
+      if (!v.isFixed && v.connectedEdgeIds.size === 0 && v.connectedPieceIds.size === 0) {
         this.canonicalVertices.delete(vertexId);
       }
     }
+
+    this.sanitizeIntegrity();
 
     return {
       success: true,
@@ -309,6 +316,16 @@ export class LogicalGraph {
       remainingVertices: this.canonicalVertices.size,
       remainingEdges: this.edges.size
     };
+  }
+
+  /**
+   * Sanitize graph integrity: prune any orphaned vertex or edge IDs from remaining pieces
+   */
+  sanitizeIntegrity() {
+    for (const piece of this.pieces.values()) {
+      piece.vertexIds = piece.vertexIds.filter(vId => this.canonicalVertices.has(vId));
+      piece.edgeIds = piece.edgeIds.filter(eId => this.edges.has(eId));
+    }
   }
 
   /**

@@ -51,6 +51,14 @@ class BuildTimer {
     this.remainingSeconds--;
     eventBus.emit(EVENTS.TIMER_TICK, this.remainingSeconds);
 
+    // Periodically sync live remaining time to backend DB every 5 seconds
+    if (this.remainingSeconds % 5 === 0 && typeof window !== 'undefined' && window.TechnoBridgeAPI) {
+      const currentRound = (window.gameState && window.gameState.currentRound) || 1;
+      window.TechnoBridgeAPI.updateRoundProgress(currentRound, {
+        timeRemaining: this.remainingSeconds
+      }).catch(_ => {});
+    }
+
     if (this.remainingSeconds <= 0) {
       this.stop();
       this.isExpired = true;

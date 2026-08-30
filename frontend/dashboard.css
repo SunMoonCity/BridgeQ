@@ -1,0 +1,284 @@
+/* ============================================================
+   dashboard.css — Pure Light Mode White Pixel Student Dashboard
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #0f172a;
+  background: #f8fafc;
+  image-rendering: pixelated;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.08) 0%, transparent 55%),
+    repeating-linear-gradient(90deg, rgba(30,41,59,0.04) 0px, rgba(30,41,59,0.04) 2px, transparent 2px, transparent 60px),
+    repeating-linear-gradient(0deg,  rgba(30,41,59,0.04) 0px, rgba(30,41,59,0.04) 2px, transparent 2px, transparent 60px),
+    #f8fafc;
+}
+
+/* Pixel Grid overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.4) 0px,
+    rgba(255,255,255,0.4) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.px-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 4px solid #1e293b;
+  background: #ffffff;
+  box-shadow: 0 4px 0px #e2e8f0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.px-header__logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  color: #0f172a;
+  text-shadow: 2px 2px 0px #bae6fd;
+  text-transform: uppercase;
+}
+
+.px-header__logo span { color: #2563eb; }
+
+/* ── Pixel Buttons ────────────────────────────────────────── */
+.px-btn {
+  display: inline-block;
+  padding: 10px 18px;
+  background: #2563eb;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #1e293b;
+  transition: transform 0.08s steps(2), box-shadow 0.08s steps(2);
+  text-decoration: none;
+}
+
+.px-btn:hover  { background: #1d4ed8; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #1e293b; }
+.px-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #1e293b; }
+
+.px-btn--outline {
+  background: #ffffff;
+  color: #1e293b;
+  border: 3px solid #1e293b;
+  box-shadow: 4px 4px 0px #cbd5e1;
+}
+
+.px-btn--outline:hover { background: #f1f5f9; }
+
+/* ── Main Layout ──────────────────────────────────────────── */
+.px-main {
+  max-width: 900px;
+  margin: 36px auto;
+  padding: 0 20px 60px;
+}
+
+/* ── Pixel Panel ──────────────────────────────────────────── */
+.px-panel {
+  background: #ffffff;
+  border: 4px solid #1e293b;
+  border-radius: 0px;
+  box-shadow: 8px 8px 0px #cbd5e1, inset 3px 3px 0px #f8fafc;
+  padding: 26px 30px;
+  margin-bottom: 24px;
+}
+
+.px-panel__title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #0f172a;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+/* ── Welcome Banner ───────────────────────────────────────── */
+.px-welcome {
+  text-align: center;
+  padding: 28px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 4px solid #1e293b;
+  border-radius: 0px;
+  box-shadow: 8px 8px 0px #93c5fd;
+}
+
+.px-welcome h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  color: #1e293b;
+  text-shadow: 3px 3px 0px #dbeafe;
+  margin-bottom: 12px;
+}
+
+.px-welcome p {
+  font-family: 'VT323', monospace;
+  color: #475569;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+
+/* ── Info Grid ────────────────────────────────────────────── */
+.px-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.px-info-card {
+  background: #f8fafc;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  padding: 14px 18px;
+  box-shadow: 4px 4px 0px #e2e8f0;
+}
+
+.px-info-card__label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.px-info-card__value {
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+/* ── Round Cards ──────────────────────────────────────────── */
+.px-rounds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.px-round-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px 18px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  cursor: pointer;
+  box-shadow: 6px 6px 0px #93c5fd;
+  transition: transform 0.08s steps(2), box-shadow 0.08s steps(2);
+  text-align: left;
+  font-family: 'VT323', monospace;
+  width: 100%;
+}
+
+.px-round-card:hover  { background: #eff6ff; transform: translate(-2px, -2px); box-shadow: 8px 8px 0px #93c5fd; }
+.px-round-card:active { transform: translate(2px, 2px); box-shadow: 3px 3px 0px #93c5fd; }
+
+.px-round-card__num {
+  width: 36px;
+  height: 36px;
+  border-radius: 0px;
+  border: 2px solid #1e293b;
+  background: #dbeafe;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+}
+
+.px-round-card__title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  color: #1e293b;
+}
+
+.px-round-card__sub {
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  color: #475569;
+}
+
+.px-round-practice {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: #ffffff;
+  border: 3px solid #1e293b;
+  border-radius: 0px;
+  color: #1e293b;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #cbd5e1;
+  transition: background 0.15s, transform 0.08s;
+}
+
+.px-round-practice:hover {
+  background: #f1f5f9;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #cbd5e1;
+}
+
+.px-round-practice:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #cbd5e1;
+}
+
+/* ── Loading Overlay ──────────────────────────────────────── */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #1e293b;
+}
+
+@media (max-width: 600px) {
+  .px-header   { padding: 12px 16px; }
+  .px-main     { margin-top: 24px; padding: 0 14px 40px; }
+  .px-panel    { padding: 18px 16px; }
+  .px-welcome h1 { font-size: 0.95rem; }
+}

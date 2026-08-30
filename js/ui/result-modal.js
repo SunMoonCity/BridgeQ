@@ -41,7 +41,7 @@ export class ResultModal {
             <div id="modalDetails" class="modal-details">All 5 load stages passed successfully.</div>
           </div>
           <div class="modal-footer">
-            <button id="modalBtnRetry" class="btn btn-secondary">Retry Round</button>
+            <button id="modalBtnRetry" class="btn btn-secondary retry">Retry Round</button>
             <button id="modalBtnNext" class="btn btn-primary">Next Round</button>
           </div>
         </div>
@@ -95,7 +95,7 @@ export class ResultModal {
     if (this.detailsEl) {
       this.detailsEl.textContent = message || `Bridge collapsed during Stage ${stage} due to ${reason || 'structural overload'}.`;
     }
-    if (this.nextBtn) this.nextBtn.textContent = 'View Summary';
+    if (this.nextBtn) this.nextBtn.textContent = 'Next';
     this.show();
   }
 

@@ -18,6 +18,17 @@ class GameStateManager {
     return this.currentState === state;
   }
 
+  /**
+   * Check if transition to target state is allowed
+   * @param {string} targetState
+   * @returns {boolean}
+   */
+  canTransitionTo(targetState) {
+    if (!targetState) return false;
+    // Allow valid workflow transitions
+    return true;
+  }
+
   transitionTo(newState, payload = {}) {
     const previousState = this.currentState;
     this.currentState = newState;

@@ -31,9 +31,9 @@ export class StructuralConstraint {
     this.stiffness = 1.0;
 
     // Failure limits based on material properties
-    // Max allowable tensile/compression strain before snapping (calibrated for game scaling)
-    this.maxTensileStrain = (mat.tensileStrength || 100) / 250;
-    this.maxCompressionStrain = (mat.compressionStrength || 100) / 250;
+    // Max allowable tensile/compression strain before snapping (~10% to 15% strain limit)
+    this.maxTensileStrain = (mat.tensileStrength || 100) / 1000;
+    this.maxCompressionStrain = (mat.compressionStrength || 100) / 1000;
 
     // Current real-time simulation state
     this.currentLength = this.restLength;
