@@ -10,7 +10,13 @@
 (function () {
   'use strict';
 
-  const BASE_URL = 'http://localhost:5000';
+  // Auto-detect: on Render the frontend and backend share the same origin.
+  // In local dev (file:// or localhost:5500) fall back to localhost:5000.
+  const BASE_URL = (
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:5000'
+      : window.location.origin   // e.g. https://bridgeq.onrender.com
+  );
   const TOKEN_KEY = 'authToken';
 
   /* ── Token helpers ──────────────────────────────────────── */
