@@ -1089,7 +1089,15 @@
       reader.onload = (ev) => processCSVText(ev.target.result);
       reader.readAsText(file);
     });
-    zone.addEventListener('click', () => document.getElementById('bulk-file-input').click());
+    /* Fix: stop the file input's click from bubbling up to the zone
+       (which would fire a second file dialog and cancel both) */
+    const fileInput = document.getElementById('bulk-file-input');
+    fileInput.addEventListener('click', (e) => e.stopPropagation());
+
+    zone.addEventListener('click', (e) => {
+      // Only open dialog if click was directly on the zone (not a child that handles itself)
+      fileInput.click();
+    });
   }
 
 })();
