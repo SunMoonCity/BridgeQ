@@ -1008,10 +1008,12 @@
       currentPage = 1;
       loadStudents(1, searchQuery);
     } catch (err) {
-      statusEl.textContent = '✗ ' + (err.message || 'Server error');
+      statusEl.textContent = '✗ ' + (err.message || 'Server error — check console');
       statusEl.className   = 'status--err';
-      isBulkSubmitting     = false;
-      submitBtn.disabled   = false;
+    } finally {
+      // Always reset button so it never stays permanently stuck
+      isBulkSubmitting      = false;
+      submitBtn.disabled    = false;
       submitBtn.textContent = '[ 🚀 IMPORT ALL STUDENTS ]';
     }
   }

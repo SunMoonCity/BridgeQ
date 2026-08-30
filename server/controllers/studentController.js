@@ -193,9 +193,11 @@ async function bulkCreateStudents(req, res) {
         continue;
       }
 
-      // name is unique in the schema — fall back to rollNo if name is blank
-      // to avoid all nameless rows colliding on the unique empty-string '' index.
-      const resolvedName = (name || '').trim() || rollNo.trim().toUpperCase();
+      // name is unique in the schema.
+      // Fallback: use the part before '@' in email — guaranteed unique since email is unique.
+      // Do NOT use rollNo as fallback because multiple students can share the same rollNo.
+      const emailPrefix  = email.trim().toLowerCase().split('@')[0];
+      const resolvedName = (name || '').trim() || emailPrefix;
 
       try {
         const student = await Student.create({
