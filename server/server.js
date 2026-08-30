@@ -73,12 +73,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ── Serve frontend files statically ───────────────────────
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
-// Also serve root files (api.js, index.html, rounds_menu.html, ...)
-app.use(express.static(path.join(__dirname, '..')));
 
-// ── API routes ─────────────────────────────────────────────
+
+// ── API routes (registered BEFORE static files so they always take priority) ──
 app.use('/api/auth',            authRoutes);
 app.use('/api/admin/students',  adminRoutes);
 app.use('/api/admin/materials', adminMaterialRoutes);
@@ -96,6 +93,11 @@ app.use('/api', (req, res) => {
     message: `API route not found: ${req.method} ${req.originalUrl}`
   });
 });
+
+// ── Serve frontend files statically (after API routes) ────
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+// Also serve root files (api.js, index.html, rounds_menu.html, ...)
+app.use(express.static(path.join(__dirname, '..')));
 
 // ── Global error handler ───────────────────────────────────
 app.use((err, req, res, _next) => {
