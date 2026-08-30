@@ -189,21 +189,23 @@
 
   /* ── Tab Switching ────────────────────────────────────────── */
   function switchTab(activeTab) {
-    const tabStudents  = document.getElementById('tab-students');
-    const tabMaterials = document.getElementById('tab-materials');
-    const tabRounds    = document.getElementById('tab-rounds');
+    const tabStudents    = document.getElementById('tab-students');
+    const tabMaterials   = document.getElementById('tab-materials');
+    const tabRounds      = document.getElementById('tab-rounds');
+    const tabLeaderboard = document.getElementById('tab-leaderboard');
 
-    const panelStudents  = document.getElementById('panel-students');
-    const panelMaterials = document.getElementById('panel-materials');
-    const panelRounds    = document.getElementById('panel-rounds');
+    const panelStudents    = document.getElementById('panel-students');
+    const panelMaterials   = document.getElementById('panel-materials');
+    const panelRounds      = document.getElementById('panel-rounds');
+    const panelLeaderboard = document.getElementById('panel-leaderboard');
 
     const btnCreateStudent = document.getElementById('open-create-btn');
     const btnBulk          = document.getElementById('open-bulk-btn');
     const btnCreateMat     = document.getElementById('open-create-mat-btn');
     const btnCreateRound   = document.getElementById('open-create-round-btn');
 
-    [panelStudents, panelMaterials, panelRounds].forEach(p => p && (p.style.display = 'none'));
-    [tabStudents, tabMaterials, tabRounds].forEach(t => t && t.classList.remove('active'));
+    [panelStudents, panelMaterials, panelRounds, panelLeaderboard].forEach(p => p && (p.style.display = 'none'));
+    [tabStudents, tabMaterials, tabRounds, tabLeaderboard].forEach(t => t && t.classList.remove('active'));
     // Hide all tab-specific create buttons (bulk button is always visible)
     [btnCreateStudent, btnCreateMat, btnCreateRound].forEach(b => b && (b.style.display = 'none'));
     if (btnBulk) btnBulk.style.display = 'none'; // hide by default, show only on students tab
@@ -223,6 +225,10 @@
       panelRounds.style.display = 'block';
       btnCreateRound.style.display = 'inline-block';
       loadRounds();
+    } else if (activeTab === 'leaderboard') {
+      tabLeaderboard.classList.add('active');
+      panelLeaderboard.style.display = 'block';
+      loadLeaderboard();
     }
   }
 
@@ -771,6 +777,7 @@
     document.getElementById('tab-students').addEventListener('click', () => switchTab('students'));
     document.getElementById('tab-materials').addEventListener('click', () => switchTab('materials'));
     document.getElementById('tab-rounds').addEventListener('click', () => switchTab('rounds'));
+    document.getElementById('tab-leaderboard').addEventListener('click', () => switchTab('leaderboard'));
 
     /* Logout */
     document.getElementById('logout-btn').addEventListener('click', () => {
@@ -799,6 +806,14 @@
 
     document.getElementById('close-student-details-modal-btn').addEventListener('click', closeStudentDetailsModal);
     document.getElementById('close-student-details-btn').addEventListener('click', closeStudentDetailsModal);
+
+    /* Leaderboard detail modal */
+    document.getElementById('close-lb-detail-btn').addEventListener('click', closeLbDetailModal);
+    document.getElementById('close-lb-detail-close-btn').addEventListener('click', closeLbDetailModal);
+    document.getElementById('lb-detail-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('lb-detail-modal')) closeLbDetailModal();
+    });
+    document.getElementById('refresh-leaderboard-btn').addEventListener('click', loadLeaderboard);
 
     /* Close modals on backdrop click */
     document.getElementById('create-modal').addEventListener('click', (e) => {
@@ -1104,6 +1119,244 @@
       // Only open dialog if click was directly on the zone (not a child that handles itself)
       fileInput.click();
     });
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     LEADERBOARD MODULE
+  ══════════════════════════════════════════════════════════ */
+
+  let leaderboardCache = [];
+
+  /* ── Score utilities ──────────────────────────────────────── */
+  function calcRoundScore(r) {
+    const ts = r.totalStages || 5;
+    const sp = Math.min(r.stagesPassed || 0, ts);
+    const tb = r.totalBudget || 1;
+    const br = Math.max(0, Math.min(r.budgetRemaining || 0, tb));
+    const stagesScore = ts > 0 ? (sp / ts) : 0;
+    const budgetScore = tb > 0 ? (br / tb) : 0;
+    return {
+      stagesPct: Math.round(stagesScore * 100),
+      budgetPct: Math.round(budgetScore * 100),
+      roundScore: Math.round((0.70 * stagesScore + 0.30 * budgetScore) * 10000) / 100
+    };
+  }
+
+  function rankColor(rank) {
+    if (rank === 1) return '#92400e';
+    if (rank === 2) return '#475569';
+    if (rank === 3) return '#78350f';
+    return '#0f172a';
+  }
+
+  function rankMedal(rank) {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return '#' + rank;
+  }
+
+  function rankBadgeClass(rank) {
+    if (rank === 1) return 'gold';
+    if (rank === 2) return 'silver';
+    if (rank === 3) return 'bronze';
+    return 'normal';
+  }
+
+  /* ── Render podium (top 3) ────────────────────────────────── */
+  function renderPodium(leaderboard) {
+    const podium = document.getElementById('lb-podium');
+    const top3 = leaderboard.slice(0, 3);
+    if (!top3.length) { podium.innerHTML = ''; return; }
+
+    podium.innerHTML = top3.map(entry => {
+      const pct = Math.min(entry.score, 100);
+      const plinthLabels = ['🥇 1ST PLACE', '🥈 2ND PLACE', '🥉 3RD PLACE'];
+      return `
+        <div class="lb-podium-card lb-rank-${entry.rank}" data-lb-id="${entry.student._id}">
+          <div class="lb-podium-medal">${rankMedal(entry.rank)}</div>
+          <div class="lb-podium-rank">RANK ${entry.rank}</div>
+          <div class="lb-podium-name">${entry.student.name || entry.student.rollNo}</div>
+          <div class="lb-podium-rollno">${entry.student.rollNo}</div>
+          <div class="lb-podium-score">${entry.score.toFixed(2)} / 100</div>
+          <div class="lb-podium-bar-wrap">
+            <div class="lb-podium-bar-fill" style="width: ${pct}%"></div>
+          </div>
+          <div class="lb-podium-plinth">${plinthLabels[entry.rank - 1]}</div>
+        </div>`;
+    }).join('');
+
+    podium.querySelectorAll('[data-lb-id]').forEach(card => {
+      card.addEventListener('click', () => openLbDetailModal(card.dataset.lbId));
+    });
+  }
+
+  /* ── Render full leaderboard table ───────────────────────── */
+  function renderLeaderboardTable(leaderboard) {
+    const tbody = document.getElementById('leaderboard-tbody');
+    if (!leaderboard.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="lb-nodata">NO STUDENTS FOUND<br><br>Students appear here after they play at least one round.</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = leaderboard.map(entry => {
+      const s = entry.student;
+      const badgeClass = rankBadgeClass(entry.rank);
+      const stageFill = entry.totalStagesMax > 0
+        ? (entry.totalStagesPassed / entry.totalStagesMax) * 70  // 70% weight
+        : 0;
+      const budgetFill = entry.totalBudgetMax > 0
+        ? (entry.totalBudgetRetained / entry.totalBudgetMax) * 30 // 30% weight
+        : 0;
+      const stageLeft = stageFill;
+      const budgetLeft = stageFill;
+
+      const dept = [s.department, s.year ? s.year + 'Y' : ''].filter(Boolean).join(' / ') || '—';
+
+      const budgetRetainedFmt = entry.totalBudgetMax > 0
+        ? `₹${Math.round(entry.totalBudgetRetained / 1000)}k / ₹${Math.round(entry.totalBudgetMax / 1000)}k`
+        : '—';
+
+      return `
+        <tr>
+          <td>
+            <div class="lb-rank-badge ${badgeClass}">${entry.rank <= 3 ? rankMedal(entry.rank) : entry.rank}</div>
+          </td>
+          <td style="font-weight: bold; color: #0f172a;">${s.name || '—'}</td>
+          <td class="td--roll">${s.rollNo}</td>
+          <td style="color: #64748b;">${dept}</td>
+          <td style="text-align: center; color: ${entry.roundsAttempted > 0 ? '#2563eb' : '#94a3b8'};">
+            ${entry.roundsAttempted > 0 ? entry.roundsAttempted + ' round' + (entry.roundsAttempted !== 1 ? 's' : '') : 'No data'}
+          </td>
+          <td>${entry.totalStagesMax > 0 ? entry.totalStagesPassed + ' / ' + entry.totalStagesMax : '—'}</td>
+          <td style="color: #16a34a;">${budgetRetainedFmt}</td>
+          <td>
+            <div class="lb-score-bar-wrap">
+              <div class="lb-score-track">
+                <div class="lb-score-fill-stages" style="width: ${stageFill}%"></div>
+                <div class="lb-score-fill-budget" style="left: ${budgetLeft}%; width: ${budgetFill}%"></div>
+              </div>
+              <div class="lb-score-label">${entry.score.toFixed(1)}</div>
+            </div>
+          </td>
+          <td>
+            <button class="px-btn px-btn--sm" style="background: #7c3aed;" data-lb-detail-id="${s._id}">📊 VIEW</button>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tbody.querySelectorAll('[data-lb-detail-id]').forEach(btn => {
+      btn.addEventListener('click', () => openLbDetailModal(btn.dataset.lbDetailId));
+    });
+  }
+
+  /* ── Load leaderboard from API ────────────────────────────── */
+  async function loadLeaderboard() {
+    const tbody = document.getElementById('leaderboard-tbody');
+    const podium = document.getElementById('lb-podium');
+    tbody.innerHTML = '<tr><td colspan="9" class="px-table-msg">CRUNCHING SCORES...</td></tr>';
+    podium.innerHTML = '';
+
+    try {
+      const res = await window.TechnoBridgeAPI.adminGetLeaderboard();
+      if (!res.success || !res.data) {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-table-msg">FAILED TO LOAD LEADERBOARD</td></tr>';
+        return;
+      }
+      leaderboardCache = res.data.leaderboard || [];
+      renderPodium(leaderboardCache);
+      renderLeaderboardTable(leaderboardCache);
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="9" class="px-table-msg">ERROR: ${err.message || 'Server error'}</td></tr>`;
+    }
+  }
+
+  /* ── Detail Modal ─────────────────────────────────────────── */
+  function closeLbDetailModal() {
+    document.getElementById('lb-detail-modal').classList.remove('open');
+  }
+
+  function openLbDetailModal(studentId) {
+    const entry = leaderboardCache.find(e => String(e.student._id) === String(studentId));
+    if (!entry) return;
+
+    const modal = document.getElementById('lb-detail-modal');
+    const content = document.getElementById('lb-detail-content');
+    modal.classList.add('open');
+
+    const s = entry.student;
+    document.getElementById('lb-detail-title').textContent =
+      `▸ #${entry.rank} — ${s.name || s.rollNo} (${s.rollNo})`;
+
+    const rankEmoji = rankMedal(entry.rank);
+    let html = `
+      <div class="lb-profile-card">
+        <div class="lb-profile-rank" style="color: ${rankColor(entry.rank)};">${rankEmoji}</div>
+        <div class="lb-profile-info">
+          <div class="lb-name">${s.name || '—'}</div>
+          <div class="lb-meta">
+            <span>Roll: <strong style="color:#2563eb">${s.rollNo}</strong></span>
+            <span>Email: ${s.email}</span>
+            <span>Dept: ${s.department || '—'}</span>
+            <span>Year: ${s.year || '—'}</span>
+          </div>
+        </div>
+        <div class="lb-total-score-box">
+          <div class="lb-big-score">${entry.score.toFixed(2)}</div>
+          <div class="lb-score-label-sm">out of 100</div>
+        </div>
+      </div>`;
+
+    if (!entry.rounds || entry.rounds.length === 0) {
+      html += `<div class="lb-nodata">NO ROUNDS PLAYED YET</div>`;
+    } else {
+      entry.rounds.forEach(r => {
+        const sc = calcRoundScore(r);
+        const completedBadge = r.isCompleted
+          ? '<span style="color: #16a34a; font-weight: bold;">[ COMPLETED ]</span>'
+          : '<span style="color: #d97706; font-weight: bold;">[ IN PROGRESS ]</span>';
+        const unlockedBadge = r.isUnlocked
+          ? '<span style="color: #2563eb;">UNLOCKED</span>'
+          : '<span style="color: #dc2626;">LOCKED</span>';
+
+        const budgetPct = r.totalBudget > 0
+          ? Math.round((r.budgetRemaining / r.totalBudget) * 100)
+          : 0;
+
+        html += `
+          <div class="lb-round-card">
+            <div class="lb-round-card__header">
+              <div class="lb-round-card__title">ROUND ${r.roundNumber} — ${r.roundName || 'Competition Phase'}</div>
+              <div class="lb-round-card__badges">${unlockedBadge} ${completedBadge}</div>
+            </div>
+            <div class="lb-round-card__stats">
+              <div>Stages Passed: <strong>${r.stagesPassed} / ${r.totalStages || 5}</strong></div>
+              <div>Budget Remaining: <strong style="color: #16a34a;">₹${(r.budgetRemaining || 0).toLocaleString('en-IN')}</strong>
+                &nbsp;<span style="color:#64748b">/ ₹${(r.totalBudget || 0).toLocaleString('en-IN')}</span>
+                &nbsp;(${budgetPct}%)
+              </div>
+              <div>Time Remaining: <strong>${r.timeRemaining || 0}s</strong></div>
+            </div>
+            <div class="lb-round-score-row">
+              <div class="lb-round-score-pill" style="background: #7c3aed;">Stages ${sc.stagesPct}%</div>
+              <div class="lb-round-score-pill" style="background: #0891b2;">Budget ${sc.budgetPct}%</div>
+              <span>→</span>
+              <div class="lb-round-score-pill" style="background: #1e293b; font-size: 0.6rem;">Round Score: ${sc.roundScore.toFixed(1)} / 100</div>
+            </div>
+          </div>`;
+      });
+
+      if (entry.rounds.length > 1) {
+        html += `
+          <div style="background:#1e293b; padding:14px 18px; border: 3px solid #0f172a; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-family:'VT323',monospace; font-size:1.2rem; color:#94a3b8;">
+            <div>Rounds Played: <strong style="color:#38bdf8">${entry.roundsAttempted}</strong></div>
+            <div>Avg Score: <strong style="color:#fde68a; font-family:'Press Start 2P',monospace; font-size:0.9rem;">${entry.score.toFixed(2)} / 100</strong></div>
+            <div style="font-size:0.75rem; color:#64748b;">= avg(70% × stages + 30% × budget) per round</div>
+          </div>`;
+      }
+    }
+
+    content.innerHTML = html;
   }
 
 })();

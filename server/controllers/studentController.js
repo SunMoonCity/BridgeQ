@@ -235,4 +235,113 @@ async function bulkCreateStudents(req, res) {
   }
 }
 
-module.exports = { createStudent, getStudents, getStudent, deleteStudent, getStudentProgressAdmin, bulkCreateStudents };
+/* ────────────────────────────────────────────────────────────
+   GET /api/admin/leaderboard
+   Returns all students ranked by composite score:
+     score = 70% × (stagesPassed / totalStages) + 30% × (budgetRemaining / totalBudget)
+   Aggregated across all rounds the student has attempted.
+   Score is out of 100.
+──────────────────────────────────────────────────────────── */
+async function getLeaderboard(req, res) {
+  try {
+    const RoundProgress = require('../models/RoundProgress');
+
+    // Get all non-admin students
+    const students = await Student.find({ role: 'student' }).select('-password').sort({ createdAt: 1 });
+
+    // Get all progress records at once (more efficient than N queries)
+    const allProgress = await RoundProgress.find({
+      student: { $in: students.map(s => s._id) }
+    }).sort({ student: 1, roundNumber: 1 });
+
+    // Group progress by student id
+    const progressMap = {};
+    allProgress.forEach(p => {
+      const key = p.student.toString();
+      if (!progressMap[key]) progressMap[key] = [];
+      progressMap[key].push(p);
+    });
+
+    // Calculate scores for each student
+    const leaderboard = students.map(student => {
+      const sid = student._id.toString();
+      const rounds = progressMap[sid] || [];
+
+      let totalScore = 0;
+      let roundsAttempted = 0;
+      let totalStagesPassed = 0;
+      let totalStagesMax = 0;
+      let totalBudgetRetained = 0;
+      let totalBudgetMax = 0;
+
+      rounds.forEach(r => {
+        const ts = r.totalStages || 5;
+        const sp = Math.min(r.stagesPassed || 0, ts);
+        const tb = r.totalBudget || 1;
+        const br = Math.max(0, Math.min(r.budgetRemaining || 0, tb));
+
+        const stagesScore = ts > 0 ? (sp / ts) : 0;
+        const budgetScore = tb > 0 ? (br / tb) : 0;
+        const roundScore  = (0.70 * stagesScore + 0.30 * budgetScore) * 100;
+
+        totalScore        += roundScore;
+        roundsAttempted   += 1;
+        totalStagesPassed += sp;
+        totalStagesMax    += ts;
+        totalBudgetRetained += br;
+        totalBudgetMax    += tb;
+      });
+
+      const avgScore = roundsAttempted > 0 ? (totalScore / roundsAttempted) : 0;
+
+      return {
+        student: {
+          _id:        student._id,
+          rollNo:     student.rollNo,
+          name:       student.name || '',
+          email:      student.email,
+          department: student.department || '',
+          year:       student.year || null,
+          createdAt:  student.createdAt
+        },
+        score:              Math.round(avgScore * 100) / 100,   // 2 decimal places
+        roundsAttempted,
+        totalStagesPassed,
+        totalStagesMax,
+        totalBudgetRetained,
+        totalBudgetMax,
+        rounds: rounds.map(r => ({
+          roundNumber:      r.roundNumber,
+          roundName:        r.roundName,
+          isCompleted:      r.isCompleted,
+          isUnlocked:       r.isUnlocked,
+          stagesPassed:     r.stagesPassed || 0,
+          totalStages:      r.totalStages  || 5,
+          budgetRemaining:  r.budgetRemaining || 0,
+          totalBudget:      r.totalBudget  || 0,
+          timeRemaining:    r.timeRemaining || 0,
+          placedPieces:     r.placedPieces  || []
+        }))
+      };
+    });
+
+    // Sort by score descending, then by name ascending as tiebreaker
+    leaderboard.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.student.name || '').localeCompare(b.student.name || '');
+    });
+
+    // Assign rank
+    leaderboard.forEach((entry, i) => { entry.rank = i + 1; });
+
+    return res.status(200).json({
+      success: true,
+      data: { leaderboard, total: leaderboard.length }
+    });
+  } catch (err) {
+    console.error('[admin] getLeaderboard error:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
+
+module.exports = { createStudent, getStudents, getStudent, deleteStudent, getStudentProgressAdmin, bulkCreateStudents, getLeaderboard };

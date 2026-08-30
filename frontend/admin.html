@@ -43,7 +43,8 @@
     <div class="px-tabs">
       <button class="px-tab-btn active" id="tab-students">[ 👨‍🎓 STUDENTS ]</button>
       <button class="px-tab-btn" id="tab-materials">[ 🧱 MATERIAL CONFIG ]</button>
-      <button class="px-tab-btn" id="tab-rounds">[ 🏆 ROUND CONFIG ]</button>
+      <button class="px-tab-btn" id="tab-rounds">[ 🎯 ROUND CONFIG ]</button>
+      <button class="px-tab-btn" id="tab-leaderboard">[ 🏆 LEADERBOARD ]</button>
     </div>
 
     <!-- Students panel -->
@@ -137,7 +138,60 @@
       </div>
     </div>
 
+    <!-- Leaderboard panel (hidden by default) -->
+    <div class="px-panel" id="panel-leaderboard" style="display: none;">
+      <div class="lb-header-row">
+        <div class="px-panel__title" style="border-bottom: none; margin-bottom: 0;">▸ Competition Leaderboard</div>
+        <div class="lb-score-legend">
+          <span class="lb-legend-item"><span class="lb-dot" style="background:#7c3aed"></span>70% Stages Passed</span>
+          <span class="lb-legend-item"><span class="lb-dot" style="background:#0891b2"></span>30% Budget Retained</span>
+        </div>
+        <button class="px-btn px-btn--sm" id="refresh-leaderboard-btn" style="background:#7c3aed;">↻ REFRESH</button>
+      </div>
+
+      <!-- Top-3 podium -->
+      <div class="lb-podium" id="lb-podium"></div>
+
+      <!-- Full ranked table -->
+      <div class="px-table-wrap" style="margin-top: 24px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px;">Rank</th>
+              <th>Student</th>
+              <th>Roll No</th>
+              <th>Dept / Year</th>
+              <th>Rounds Played</th>
+              <th>Stages</th>
+              <th>Budget Retained</th>
+              <th style="min-width:160px;">Score / 100</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody">
+            <tr><td colspan="9" class="px-table-msg">LOADING LEADERBOARD...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
+
+  <!-- Leaderboard Student Detail Modal -->
+  <div class="px-modal-backdrop" id="lb-detail-modal">
+    <div class="px-modal" style="width: min(94vw, 900px);">
+      <div class="px-modal__header">
+        <div class="px-modal__title" id="lb-detail-title">▸ Student Details</div>
+        <button class="px-modal__close" id="close-lb-detail-btn">&times;</button>
+      </div>
+      <div id="lb-detail-content">
+        <div class="px-table-msg">LOADING...</div>
+      </div>
+      <div class="px-modal-actions" style="margin-top: 20px;">
+        <button class="px-btn px-btn--outline" id="close-lb-detail-close-btn" style="width:100%;">[ CLOSE ]</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Create Student Modal -->
   <div class="px-modal-backdrop" id="create-modal">

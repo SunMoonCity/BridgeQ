@@ -171,6 +171,10 @@
     return apiFetch('/api/admin/students/' + studentId + '/progress');
   }
 
+  async function adminGetLeaderboard() {
+    return apiFetch('/api/admin/students/leaderboard');
+  }
+
   /* ── Expose public API ───────────────────────────────────── */
   window.TechnoBridgeAPI = {
     login,
@@ -186,6 +190,7 @@
     adminDeleteStudent,
     adminBulkCreateStudents,
     adminGetStudentProgress,
+    adminGetLeaderboard,
     adminGetMaterials,
     adminCreateMaterial,
     adminUpdateMaterial,
