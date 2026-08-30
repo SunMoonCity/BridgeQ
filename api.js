@@ -44,10 +44,10 @@
   }
 
   /* ── Auth ───────────────────────────────────────────────── */
-  async function login(rollNo, password) {
+  async function login(email, password) {
     const data = await apiFetch('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ rollNo, password })
+      body: JSON.stringify({ email, password })
     });
     if (data.token) setToken(data.token);
     return data;

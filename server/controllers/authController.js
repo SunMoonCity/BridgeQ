@@ -12,24 +12,24 @@ function signToken(studentId) {
   );
 }
 
-/* ── POST /api/auth/login ──────────────────────────────── */
+/* ── POST /api/auth/login ─────────────────────────────── */
 async function login(req, res) {
   try {
-    const { rollNo, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!rollNo || !password) {
-      return res.status(400).json({ success: false, message: 'Roll number and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
     // Explicitly select password (excluded by default)
-    const student = await Student.findOne({ rollNo: rollNo.toUpperCase().trim() }).select('+password');
+    const student = await Student.findOne({ email: email.toLowerCase().trim() }).select('+password');
     if (!student) {
-      return res.status(401).json({ success: false, message: 'Invalid roll number or password' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     const isMatch = await student.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid roll number or password' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     const token = signToken(student._id);

@@ -47,11 +47,11 @@
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const rollNo   = document.getElementById('rollno').value.trim();
+    const email    = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    if (!rollNo || !password) {
-      setStatus('Please enter your roll number and password.', true);
+    if (!email || !password) {
+      setStatus('Please enter your email and password.', true);
       return;
     }
 
@@ -59,8 +59,7 @@
     setStatus('');
 
     try {
-      const data = await window.TechnoBridgeAPI.login(rollNo, password);
-      // Store display name
+      const data = await window.TechnoBridgeAPI.login(email, password);
       try { localStorage.setItem('rollno', data.user.rollNo); } catch (_) {}
       setStatus('Welcome back! Entering...');
       setTimeout(() => redirectAfterLogin(data.user.role), 600);
